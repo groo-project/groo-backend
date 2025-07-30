@@ -1,0 +1,26 @@
+name: "🐞 Bug"
+description: "버그 제보"
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: 🐛 버그 설명
+      description: 발생한 버그에 대한 설명을 작성해 주세요.
+      placeholder: 어떤 문제가 발생했는지 자세히 적어주세요!
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: ⚙️ 재현 방법
+      description: 버그를 재현하는 방법을 순서대로 작성해 주세요.
+      placeholder: 1. ~~ 페이지로 이동한다.\n2. ~~ 버튼을 클릭한다.\n3. 오류 발생!
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 📸 스크린샷
+      description: 가능하다면 스크린샷을 첨부해 주세요.
+  - type: textarea
+    attributes:
+      label: 🛠 예상 해결 방법
+      description: 해결 방법에 대한 아이디어가 있다면 작성해 주세요.

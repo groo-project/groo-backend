@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.x1.groo.forest.mate.query.dao.MateMapper">
+
+    <!-- resultMap 정의 -->
+    <resultMap id="DiaryWithEmotionResultMap" type="com.x1.groo.forest.mate.query.dto.DiaryByDateDTO">
+        <id property="diaryId" column="diary_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <collection property="emotions" ofType="string" column="diary_id" select="findEmotionsByDiaryId"/>
+    </resultMap>
+    
+    <!-- 날짜별 일기 조회 -->
+    <select id="findDiaryByDateAndForestId" resultMap="DiaryWithEmotionResultMap">
+        SELECT DISTINCT
+               d.id AS diary_id
+             , u.nickname
+             , d.content
+             , d.created_at
+          FROM diary d
+          JOIN user u ON d.user_id = u.id
+          JOIN forest f ON d.forest_id = f.id
+          LEFT JOIN shared_forest sf ON f.id = sf.forest_id
+         WHERE f.id = #{forestId}
+           AND d.is_published = 1
+           AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+    </select>
+    
+    
+    <!--    월별 일기 조회 -->
+    <resultMap id="DiaryByMonthResultMap" type="com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO">
+        <id property="diaryId" column="id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+    
+    <select id="findDiariesByMonth" resultMap="DiaryByMonthResultMap">
+        SELECT
+               d.id
+             , d.created_at
+          FROM diary d
+         WHERE d.forest_id = #{forestId}
+           AND d.is_published = 1
+           AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+    </select>
+    
+    
+    <!-- diary_id에 해당하는 감정 리스트 조회 -->
+    <select id="findEmotionsByDiaryId" resultType="string">
+        SELECT emotion
+          FROM diary_emotion
+         WHERE diary_id = #{diary_id}
+    </select>
+    
+    <!-- 유저의 입장 여부 확인 -->
+    <select id="existsUserInForest" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+          FROM shared_forest
+         WHERE user_id = #{userId}
+           AND forest_id = #{forestId}
+    </select>
+    
+    <!-- 유저가 입장중인 우정의 숲 조회 -->
+    <select id="findForestsByUserId" resultType="com.x1.groo.forest.mate.query.dto.MateForestResponseDTO">
+        SELECT f.id AS forestId, f.name AS forestName
+          FROM shared_forest sf
+          JOIN forest f ON sf.forest_id = f.id
+         WHERE sf.user_id = #{userId}
+    </select>
+    
+    <!--    우정의 숲 상세 조회 -->
+    <resultMap id="MateForestDetailResultMap" type="com.x1.groo.forest.mate.query.dto.MateForestDetailDTO">
+        <result property="forestId" column="forest_id"/>
+        <result property="name" column="forest_name"/>
+        <result property="isPublic" column="is_public"/>
+        <result property="backgroundId" column="background_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="backgroundImageUrl" column="background_image_url"/>
+        <collection property="placementList"
+                    resultMap="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper.PlacementDTOMap"/>
+    </resultMap>
+
+    <select id="findForestDetail" resultMap="MateForestDetailResultMap">
+        SELECT
+               f.id AS forest_id
+             , f.name AS forest_name
+             , f.is_public
+             , f.background_id AS background_id
+             , f.user_id
+             , b.image_url AS background_image_url
+
+             , p.id AS placement_id
+             , p.position_x AS placement_position_x
+             , p.position_y AS placement_position_y
+             , ui.id AS user_item_id
+             , ui.placed_count
+
+             , i.id AS item_id
+             , i.name AS item_name
+             , i.image_url AS item_image_url
+          FROM forest f
+          LEFT JOIN background b ON f.background_id = b.id
+          LEFT JOIN user_item ui ON ui.forest_id = f.id
+          LEFT JOIN placement p ON p.user_item_id = ui.id
+          LEFT JOIN item i ON ui.item_id = i.id
+         WHERE f.id = #{forestId}
+<!--           AND f.is_public = false-->
+<!--           AND p.id IS NOT NULL;-->
+    </select>
+    
+    <!-- 숲에 참여한 모든 유저 닉네임 조회 -->
+    <select id="findNicknamesByForestId" resultType="string">
+        SELECT
+               u.nickname
+          FROM shared_forest sf
+          JOIN user u ON sf.user_id = u.id
+         WHERE sf.forest_id = #{forestId}
+    </select>
+</mapper>

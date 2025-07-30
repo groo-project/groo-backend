@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper">
+    <resultMap id="QueryForestUserItemResultMap"
+               type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO">
+        <result property="id" column="id"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="placedCount" column="placed_count"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="imageUrl" column="image_url"/>
+    </resultMap>
+
+    <resultMap id="QueryForestMailboxListResultMap"
+               type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxListDTO">
+        <result property="id" column="id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="forestId" column="forest_id"/>
+    </resultMap>
+
+    <resultMap id="QueryForestMailboxDetailResultMap"
+               type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO">
+        <result property="id" column="id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="forestId" column="forest_id"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <resultMap id="QueryForestDetailResultMap" type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO">
+        <result property="forestId" column="forest_id"/>
+        <result property="name" column="forest_name"/>
+        <result property="isPublic" column="is_public"/>
+        <result property="backgroundId" column="background_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="backgroundImageUrl" column="background_image_url"/>
+        <collection property="placementList"
+                    resultMap="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper.PlacementDTOMap"/>
+    </resultMap>
+
+    <resultMap id="PlacementDTOMap" type="com.x1.groo.forest.emotion.query.dto.PlacementDTO">
+        <result property="placementId" column="placement_id"/>
+        <result property="placementPositionX" column="placement_position_x"/>
+        <result property="placementPositionY" column="placement_position_y"/>
+        <result property="userItemId" column="user_item_id"/>
+        <result property="userItemPlacedCount" column="placed_count"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemName" column="item_name"/>
+        <result property="itemImageUrl" column="item_image_url"/>
+    </resultMap>
+
+    <resultMap id="QueryForestListResultMap" type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <resultMap id="DiaryWithEmotionResultMap" type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDiaryByDateDTO">
+        <id property="diaryId" column="diary_id"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+        <collection property="emotions" ofType="string" column="diary_id" select="findEmotionsByDiaryId"/>
+    </resultMap>
+
+    <resultMap id="DiaryByMonthResultMap" type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDiaryByMonthDTO">
+        <id property="diaryId" column="id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findUserIdByForestId" resultType="int">
+        SELECT user_id
+        FROM forest
+        WHERE id = #{forestId}
+    </select>
+
+    <select id="findPieceOfMemory" resultMap="QueryForestUserItemResultMap">
+        SELECT ui.id
+             , ui.item_id
+             , ui.total_count
+             , ui.placed_count
+             , i.name
+             , i.category_id
+             , i.image_url
+        FROM user_item ui
+                 JOIN item i ON ui.item_id = i.id
+        WHERE ui.user_id = #{userId}
+          AND i.category_id = #{categoryId}
+          AND ui.forest_id = #{forestId}
+    </select>
+
+    <select id="findMailboxList" resultMap="QueryForestMailboxListResultMap">
+        SELECT m.id
+             , m.created_at
+             , m.forest_id
+        FROM mailbox m
+                 JOIN forest f ON m.forest_id = f.id
+        WHERE m.forest_id = #{forestId}
+          AND m.is_deleted = false
+          AND (f.is_public = true
+            OR (f.is_public = false AND f.user_id = #{userId}))
+        ORDER BY m.created_at DESC;
+    </select>
+
+    <select id="findMailboxDetail" resultMap="QueryForestMailboxDetailResultMap">
+        SELECT m.id
+             , m.content
+             , m.created_at
+             , m.forest_id
+             , m.user_id
+        FROM mailbox m
+                 JOIN forest f ON m.forest_id = f.id
+        WHERE m.id = #{id}
+          AND m.is_deleted = false
+          AND (f.is_public = true
+            OR (f.is_public = false AND f.user_id = #{userId}));
+    </select>
+
+
+    <select id="findForestDetail" resultMap="QueryForestDetailResultMap">
+        SELECT f.id            AS forest_id
+             , f.name          AS forest_name
+             , f.is_public
+             , f.background_id AS background_id
+             , f.user_id
+             , b.image_url     AS background_image_url
+             , p.id            AS placement_id
+             , p.position_x    AS placement_position_x
+             , p.position_y    AS placement_position_y
+             , ui.id           AS user_item_id
+             , ui.placed_count
+             , i.id            AS item_id
+             , i.name          AS item_name
+             , i.image_url     AS item_image_url
+        FROM forest f
+                 LEFT JOIN background b ON f.background_id = b.id
+                 LEFT JOIN user_item ui ON ui.forest_id = f.id AND ui.placed_count > 0
+                 LEFT JOIN placement p ON p.user_item_id = ui.id
+                 LEFT JOIN item i ON ui.item_id = i.id
+        WHERE f.id = #{forestId}
+          AND (f.is_public = true
+           OR (f.is_public = false AND f.user_id = #{userId}));
+    </select>
+
+    <select id="findForestList" resultMap="QueryForestListResultMap">
+        SELECT
+               f.id
+             , f.user_id
+          FROM forest f
+         WHERE f.user_id = #{userId}
+           AND NOT EXISTS (
+               SELECT 1
+                 FROM shared_forest sf
+                WHERE sf.forest_id = f.id)
+         ORDER BY f.id DESC
+         LIMIT 1;
+    </select>
+
+    <select id="findDiaryByDateAndForestId" resultMap="DiaryWithEmotionResultMap">
+        SELECT DISTINCT
+            d.id AS diary_id
+                      , d.content
+                      , d.created_at
+        FROM diary d
+                 JOIN user u ON d.user_id = u.id
+                 JOIN forest f ON d.forest_id = f.id
+                 LEFT JOIN shared_forest sf ON f.id = sf.forest_id
+        WHERE f.id = #{forestId}
+          AND d.is_published = 1
+          AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+    </select>
+
+    <select id="findDiariesByMonth" resultMap="DiaryByMonthResultMap">
+        SELECT
+            d.id
+             , d.created_at
+        FROM diary d
+        WHERE d.forest_id = #{forestId}
+          AND d.is_published = 1
+          AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+    </select>
+
+    <select id="isOwnerOfForest" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM forest
+        WHERE id = #{forestId} AND user_id = #{userId}
+    </select>
+
+    <select id="existsUserInForest" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM shared_forest
+        WHERE user_id = #{userId}
+          AND forest_id = #{forestId}
+    </select>
+
+    <select id="findEmotionsByDiaryId" resultType="string">
+        SELECT emotion
+        FROM diary_emotion
+        WHERE diary_id = #{diary_id}
+    </select>
+
+</mapper>
