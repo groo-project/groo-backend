@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Tag(name = "감정숲 API")
+@Tag(name = "감정숲 API", description = "감정의 숲 관련 기능을 제공하는 API 입니다.")
 @RestController
 @RequestMapping("/api/emotion-forest")
 @Slf4j
@@ -32,6 +32,7 @@ public class CommandEmotionForestController {
         this.jwtUtil = jwtUtil;
     }
 
+    @Operation(summary = "개별 기록의 조각 회수")
     @DeleteMapping("/placement")
     public ResponseEntity<Void> retrieveItemById(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam int placementId) {
@@ -46,6 +47,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "모든 기록의 조각 회수")
     @DeleteMapping("/placements")
     public ResponseEntity<Void> retrieveAllItems(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam int forestId) {
@@ -60,6 +62,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "기록의 조각 배치")
     @PostMapping("/placement")
     public ResponseEntity<Void> placement(@RequestHeader(value = "Authorization") String authorizationHeader,
                                           @RequestBody RequestPlacementVO requestPlacementVO) {
@@ -74,6 +77,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "배치된 기록의 조각 수정")
     @PatchMapping("/placement")
     public ResponseEntity<Void> replacement(@RequestHeader(value = "Authorization") String authorizationHeader,
                                             @RequestBody RequestReplacementVO requestReplacementVO) {
@@ -88,6 +92,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "방명록 등록")
     @PostMapping("/mailbox")
     public ResponseEntity<Void> createMailbox(@RequestHeader(value = "Authorization") String authorizationHeader,
                                               @RequestBody RequestMailboxVO requestMailboxVO) {
@@ -102,6 +107,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "방명록 삭제")
     @DeleteMapping("/mailbox")
     public ResponseEntity<Void> deleteMailbox(@RequestHeader(value = "Authorization") String authorizationHeader,
                                               @RequestParam int mailboxId,

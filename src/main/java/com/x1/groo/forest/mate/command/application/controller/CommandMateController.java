@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Tag(name = "우정의 숲 API", description = "이메일 인증 코드 전송 및 인증 코드 검증 기능을 제공하는 API 입니다.")
+@Tag(name = "우정의 숲 API", description = "우정의 숲 관련 기능을 제공하는 API 입니다.")
 @RestController
 @RequestMapping("/api/mate")
 @Slf4j
