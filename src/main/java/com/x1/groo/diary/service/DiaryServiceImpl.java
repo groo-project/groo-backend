@@ -53,15 +53,15 @@ public class DiaryServiceImpl implements DiaryService {
             );
         }
 
-        // AI 감정 분석
-        EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
-                new EmotionRequestDTO(req.getContent())
-        );
-        String mainEmotion = aiRes.getMainEmotion()
-                .trim()
-                .replaceAll("[\"\\r\\n]", "");
-
-        String weather = aiRes.getWeather();
+//        // AI 감정 분석
+//        EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
+//                new EmotionRequestDTO(req.getContent())
+//        );
+//        String mainEmotion = aiRes.getMainEmotion()
+//                .trim()
+//                .replaceAll("[\"\\r\\n]", "");
+//
+//        String weather = aiRes.getWeather();
 
         // Diary 저장
         Diary diary = new Diary();
@@ -69,21 +69,24 @@ public class DiaryServiceImpl implements DiaryService {
         diary.setIsPublished(true);
         diary.setUserId(userId);
         diary.setForestId(forestId);
-        diary.setWeather(weather);
+        diary.setWeather("맑음");
         diary.setCreatedAt(createdAt);
         diary.setUpdatedAt(LocalDateTime.now());
         Diary savedDiary = diaryRepo.save(diary);
 
         // 상위 2개 감정 추출 및 저장
-        LinkedHashMap<String, Integer> top2 = aiRes.getEmotionResult().entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                .limit(2)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (oldVal, newVal) -> oldVal,
-                        LinkedHashMap::new
-                ));
+//        LinkedHashMap<String, Integer> top2 = aiRes.getEmotionResult().entrySet().stream()
+//                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+//                .limit(2)
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        Map.Entry::getValue,
+//                        (oldVal, newVal) -> oldVal,
+//                        LinkedHashMap::new
+//                ));
+        LinkedHashMap<String, Integer> top2 = new LinkedHashMap<>();
+        top2.put("즐거움", 60);
+        top2.put("설렘", 40);
         top2.forEach((emotion, weight) -> {
             DiaryEmotion de = new DiaryEmotion();
             de.setDiary(savedDiary);
@@ -93,15 +96,15 @@ public class DiaryServiceImpl implements DiaryService {
         });
 
         List<CategoryEmotionItemDTO> emotionItems =
-          itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
+          itemService.findItemsByCategoryAndEmotion(categoryId, "즐거움");
 
         return new DiaryResponseDTO(
                 savedDiary.getId(),
                 userId,
                 forestId,
                 top2,
-                mainEmotion,
-                weather,
+                "즐거움",
+                "맑음",
                 req.getContent(),
                 emotionItems
         );

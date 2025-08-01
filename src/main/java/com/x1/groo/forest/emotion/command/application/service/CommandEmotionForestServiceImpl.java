@@ -127,6 +127,9 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         placement.setPositionY(requestPlacementVO.getItemPositionY());
         placement.setUser(userItem.getUser()); // 또는 userRepository에서 다시 가져와도 됨
         placement.setUserItem(userItem);
+        placement.setHeight(requestPlacementVO.getItemHeight());
+        placement.setWidth(requestPlacementVO.getItemWidth());
+        placement.setZIndex(requestPlacementVO.getItemZIndex());
 
         placementRepository.save(placement);
     }

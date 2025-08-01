@@ -45,6 +45,9 @@
         <result property="placementId" column="placement_id"/>
         <result property="placementPositionX" column="placement_position_x"/>
         <result property="placementPositionY" column="placement_position_y"/>
+        <result property="placementWidth" column="placement_width" />
+        <result property="placementHeight" column="placement_height" />
+        <result property="placementZIndex" column="placement_z_index" />
         <result property="userItemId" column="user_item_id"/>
         <result property="userItemPlacedCount" column="placed_count"/>
         <result property="itemId" column="item_id"/>
@@ -119,7 +122,8 @@
 
 
     <select id="findForestDetail" resultMap="QueryForestDetailResultMap">
-        SELECT f.id            AS forest_id
+        SELECT
+               f.id            AS forest_id
              , f.name          AS forest_name
              , f.is_public
              , f.background_id AS background_id
@@ -128,19 +132,22 @@
              , p.id            AS placement_id
              , p.position_x    AS placement_position_x
              , p.position_y    AS placement_position_y
+             , p.width         AS placement_width
+             , p.height        AS placement_height
+             , p.z_index       AS placement_z_index
              , ui.id           AS user_item_id
              , ui.placed_count
              , i.id            AS item_id
              , i.name          AS item_name
              , i.image_url     AS item_image_url
-        FROM forest f
-                 LEFT JOIN background b ON f.background_id = b.id
-                 LEFT JOIN user_item ui ON ui.forest_id = f.id AND ui.placed_count > 0
-                 LEFT JOIN placement p ON p.user_item_id = ui.id
-                 LEFT JOIN item i ON ui.item_id = i.id
-        WHERE f.id = #{forestId}
-          AND (f.is_public = true
-           OR (f.is_public = false AND f.user_id = #{userId}));
+          FROM forest f
+          LEFT JOIN background b ON f.background_id = b.id
+          LEFT JOIN user_item ui ON ui.forest_id = f.id AND ui.placed_count > 0
+          LEFT JOIN placement p ON p.user_item_id = ui.id
+          LEFT JOIN item i ON ui.item_id = i.id
+         WHERE f.id = #{forestId}
+           AND (f.is_public = true
+            OR (f.is_public = false AND f.user_id = #{userId}));
     </select>
 
     <select id="findForestList" resultMap="QueryForestListResultMap">

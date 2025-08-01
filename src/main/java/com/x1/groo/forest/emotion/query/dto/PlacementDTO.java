@@ -20,5 +20,8 @@ public class PlacementDTO {
     private int placementId;
     private BigDecimal placementPositionX;
     private BigDecimal placementPositionY;
+    private BigDecimal placementWidth;
+    private BigDecimal placementHeight;
+    private Integer placementZIndex;
 
 }
