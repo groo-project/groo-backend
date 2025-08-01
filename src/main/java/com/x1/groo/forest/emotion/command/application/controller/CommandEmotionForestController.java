@@ -7,6 +7,8 @@ import com.x1.groo.forest.emotion.command.domain.vo.RequestMailboxVO;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestPlacementVO;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "감정숲 API")
 @RestController
 @RequestMapping("/api/emotion-forest")
 @Slf4j
@@ -114,7 +117,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
-    // 숲 공개여부
+    @Operation(summary = "숲 공개여부")
     @PatchMapping("/public/{forestId}")
     public ResponseEntity<Void> updateForestPublic(@PathVariable int forestId,
                                                    @RequestHeader(value = "Authorization") String authorizationHeader) {
@@ -129,7 +132,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
-    // 숲 생성
+    @Operation(summary = "숲 생성")
     @PostMapping("/new")
     public ResponseEntity<Map<String, String>> createEmotionForest(
             @RequestHeader(value = "Authorization") String authorizationHeader,
@@ -144,7 +147,7 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok(Map.of("message", "감정의 숲이 생성되었습니다."));
     }
 
-    // 숲 이름 수정하기
+    @Operation(summary = "숲 이름 수정")
     @PatchMapping("/{forestId}/name")
     public ResponseEntity<Void> updateForestName(@PathVariable int forestId,
                                                  @RequestHeader(value = "Authorization") String authorizationHeader,

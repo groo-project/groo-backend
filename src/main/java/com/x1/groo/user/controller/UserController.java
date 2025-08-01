@@ -5,6 +5,8 @@ import com.x1.groo.security.service.AuthService;
 import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.user.service.UserService;
 import com.x1.groo.user.vo.SignupRequestVO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "유저 API", description = "회원가입 및 로그인 기능을 제공하는 API입니다.")
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
@@ -25,13 +28,13 @@ public class UserController {
         this.authService = authService;
     }
 
-    // 기능 : 회원가입
+    @Operation(summary = "회원 가입")
     @PostMapping("/signup")
     public ResponseEntity<String> registerUser(@RequestBody @Valid SignupRequestVO signupRequestVO) {
         return ResponseEntity.ok(userService.registerUser(signupRequestVO));
     }
 
-    // 기능 : 로그인
+    @Operation(summary = "로그인")
     @PostMapping("/login")
     public ResponseEntity<TokenDTO> login(@RequestBody LoginRequestVO loginRequestVO) {
         return ResponseEntity.ok(authService.login(loginRequestVO));
