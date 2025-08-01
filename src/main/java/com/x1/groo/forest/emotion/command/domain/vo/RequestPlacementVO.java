@@ -15,6 +15,6 @@ public class RequestPlacementVO {
     private BigDecimal itemPositionY;
     private BigDecimal itemWidth;
     private BigDecimal itemHeight;
-    private int itemZIndex;
+    private Integer itemZIndex;
     private int itemId;
 }
