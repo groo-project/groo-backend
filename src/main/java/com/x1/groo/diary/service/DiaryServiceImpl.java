@@ -69,7 +69,7 @@ public class DiaryServiceImpl implements DiaryService {
         diary.setIsPublished(true);
         diary.setUserId(userId);
         diary.setForestId(forestId);
-        diary.setWeather(weather;
+        diary.setWeather(weather);
         diary.setCreatedAt(createdAt);
         diary.setUpdatedAt(LocalDateTime.now());
         Diary savedDiary = diaryRepo.save(diary);
@@ -93,7 +93,7 @@ public class DiaryServiceImpl implements DiaryService {
         });
 
         List<CategoryEmotionItemDTO> emotionItems =
-          itemService.findItemsByCategoryAndEmotion(categoryId, "즐거움");
+          itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
 
         return new DiaryResponseDTO(
                 savedDiary.getId(),
