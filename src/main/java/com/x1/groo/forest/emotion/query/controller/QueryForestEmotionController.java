@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@Tag(name = "감정숲 API")
+@Tag(name = "감정숲")
 @RestController
 @RequestMapping
 @Slf4j

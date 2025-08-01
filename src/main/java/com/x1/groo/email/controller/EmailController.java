@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "이메일 API", description = "이메일 인증 코드 전송 및 인증 코드 검증 기능을 제공하는 API 입니다.")
+@Tag(name = "이메일", description = "이메일 인증 코드 전송 및 인증 코드 검증 기능을 제공합니다.")
 @Slf4j
 @RestController
 @RequiredArgsConstructor

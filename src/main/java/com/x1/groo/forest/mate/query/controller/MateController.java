@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@Tag(name = "우정의 숲 API")
+@Tag(name = "우정의 숲")
 @RestController
 @RequestMapping("/mate")
 @RequiredArgsConstructor

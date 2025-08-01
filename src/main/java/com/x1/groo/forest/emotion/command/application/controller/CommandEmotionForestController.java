@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Tag(name = "감정숲 API", description = "감정의 숲 관련 기능을 제공하는 API 입니다.")
+@Tag(name = "감정숲", description = "감정의 숲 관련 기능을 제공합니다.")
 @RestController
 @RequestMapping("/emotion-forest")
 @Slf4j

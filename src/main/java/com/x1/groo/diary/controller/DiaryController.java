@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@Tag(name = "일기 API", description = "일기 작성, 수정, 임시저장 및 조회 기능을 제공하는 API 입니다.")
+@Tag(name = "일기", description = "일기 작성, 수정, 임시저장 및 조회 기능을 제공합니다.")
 @RestController
 @RequestMapping("/api/diaries")
 @RequiredArgsConstructor
