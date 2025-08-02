@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/emotion-forest")
+@RequestMapping("/api/emotion-forest")
 @Slf4j
 public class CommandEmotionForestController {
 

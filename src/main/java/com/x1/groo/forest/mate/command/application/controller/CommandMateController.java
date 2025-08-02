@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/mate")
+@RequestMapping("/api/mate")
 @Slf4j
 public class CommandMateController {
 
