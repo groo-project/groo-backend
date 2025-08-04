@@ -1,37 +1,25 @@
 package com.x1.groo.user.controller;
 
-import com.x1.groo.auth.command.application.aggregate.RefreshToken;
-import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.CookieUtil;
-import com.x1.groo.auth.command.util.HashUtil;
-import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.dto.TokenDTO;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.security.vo.LoginRequestVO;
-import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import com.x1.groo.user.vo.ResponsefindUserVO;
 import com.x1.groo.user.vo.SignupRequestVO;
-import io.jsonwebtoken.Jwt;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Tag(name = "유저", description = "회원가입 및 로그인 기능을 제공합니다.")
 @Slf4j

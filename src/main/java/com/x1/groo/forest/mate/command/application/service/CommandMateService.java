@@ -3,7 +3,7 @@ package com.x1.groo.forest.mate.command.application.service;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 
 public interface CommandMateService {
-    String createInviteLink(int forestId);
+    String createInviteLink(int forestId, int userId);
 
     int acceptInvite(int userId, String inviteCode);
 

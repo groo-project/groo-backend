@@ -43,6 +43,8 @@ public enum ErrorCode {
     FOREST_INVITE_CODE_INVALID(HttpStatus.BAD_REQUEST, "F003", "초대코드가 유효하지 않습니다."),
     FOREST_ALREADY_ACCEPTED_INVITE(HttpStatus.BAD_REQUEST, "F004", "이미 숲에 참여한 사용자입니다."),
     FOREST_FULL(HttpStatus.BAD_REQUEST, "F005", "이 숲은 이미 정원이 가득 찼습니다."),
+    FOREST_INVITE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F006", "초대 코드를 생성하지 못했습니다."),
+    FOREST_INVITE_CODE_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F007", "초대 코드 저장 중 오류가 발생했습니다."),
 
     // forest 내 placement 관련
     PLACEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "배치된 아이템을 찾을 수 없습니다."),

@@ -8,15 +8,17 @@ import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.common.domain.repository.BackgroundRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
+import com.x1.groo.forest.mate.command.domain.aggregate.ForestInviteEntity;
 import com.x1.groo.forest.mate.command.domain.aggregate.SharedForestEntity;
+import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -32,8 +34,10 @@ public class CommandMateServiceImpl implements CommandMateService {
     private final ForestRepository forestRepository;
     private final UserRepository userRepository;
     private final BackgroundRepository backgroundRepository;
+    private final ForestInviteRepository forestInviteRepository;
 
     // 우정의 숲 탈퇴
+    @Transactional
     @Override
     public void quit(int userId, int forestId) {
         boolean isMember = sharedForestRepository.existsByUserIdAndForestId(userId, forestId);
@@ -52,23 +56,34 @@ public class CommandMateServiceImpl implements CommandMateService {
 
     }
 
+
     // 초대 링크 생성
+    @Transactional
     @Override
-    public String createInviteLink(int forestId) {
+    public String createInviteLink(int forestId, int userId) {
 
+        if(!forestRepository.existsById(forestId))throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
 
-        // 초대 링크 생성 로직 작성
-        // UUID 기반 inviteCode 생성
-        String inviteCode = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        for(int i=0; i<3; i++) {
+            String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
 
-        // Redis에 저장
-        String redisKey = "invite:" + inviteCode;
-        String redisValue = String.valueOf(forestId);
+            ForestInviteEntity entity = new ForestInviteEntity();
+            entity.setForestId(forestId);
+            entity.setCode(inviteCode);
+            entity.setCreatedBy(userId);
+            try {
+                forestInviteRepository.saveAndFlush(entity);
+                return inviteCode;
+            } catch (DataIntegrityViolationException e) {
+                if(!isUniqueViolation(e)) throw new CustomException(ErrorCode.FOREST_INVITE_GENERATION_FAILED);
+            }
+        }
+        throw new CustomException(ErrorCode.FOREST_INVITE_CODE_SAVE_FAILED);
+    }
 
-        redisTemplate.opsForValue()
-                .set(redisKey, redisValue, Duration.ofHours(24));
-
-        return inviteCode;
+    public boolean isUniqueViolation(DataIntegrityViolationException e) {
+        String message = String.valueOf(e);
+        return message.contains("uk_code") || message.contains("Duplicate") || message.contains("UNIQUE");
     }
 
     // 초대 수락
