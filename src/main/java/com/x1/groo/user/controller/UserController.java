@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "유저 API", description = "회원가입 및 로그인 기능을 제공하는 API입니다.")
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class UserController {
     private final UserService userService;
     private final AuthService authService;

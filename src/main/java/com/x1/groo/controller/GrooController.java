@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GrooController {
 
-    @GetMapping("/api/health")
+    @GetMapping("/health")
     public String health() {
         return "I'm OK6";
     }

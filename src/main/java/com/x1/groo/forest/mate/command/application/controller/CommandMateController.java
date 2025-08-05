@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Tag(name = "우정의 숲 API", description = "우정의 숲 관련 기능을 제공하는 API 입니다.")
 @RestController
-@RequestMapping("/api/mate")
+@RequestMapping("/mate")
 @Slf4j
 public class CommandMateController {
 

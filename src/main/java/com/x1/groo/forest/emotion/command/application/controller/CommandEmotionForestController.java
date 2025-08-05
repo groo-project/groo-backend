@@ -18,7 +18,7 @@ import java.util.Map;
 
 @Tag(name = "감정숲 API", description = "감정의 숲 관련 기능을 제공하는 API 입니다.")
 @RestController
-@RequestMapping("/api/emotion-forest")
+@RequestMapping("/emotion-forest")
 @Slf4j
 public class CommandEmotionForestController {
 
