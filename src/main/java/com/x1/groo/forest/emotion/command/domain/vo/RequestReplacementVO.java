@@ -12,5 +12,8 @@ import java.math.BigDecimal;
 public class RequestReplacementVO {
     private BigDecimal itemPositionX;
     private BigDecimal itemPositionY;
+    private BigDecimal itemWidth;
+    private BigDecimal itemHeight;
+    private Integer itemZIndex;
     private int placementId;
 }

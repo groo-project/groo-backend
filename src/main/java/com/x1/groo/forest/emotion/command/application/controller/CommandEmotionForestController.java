@@ -29,6 +29,12 @@ public class CommandEmotionForestController {
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * 단일 아이템 회수
+     * @param authorizationHeader 토큰
+     * @param placementId 배치된 아이템 배치 id
+     * @return 정상 처리 시 200 반환
+     */
     @DeleteMapping("/placement")
     public ResponseEntity<Void> retrieveItemById(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam int placementId) {
@@ -43,6 +49,12 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 아이템 전체 회수
+     * @param authorizationHeader 토큰
+     * @param forestId 전체 회수를 진행 할 숲 id
+     * @return 정상 처리 시 200 반환
+     */
     @DeleteMapping("/placements")
     public ResponseEntity<Void> retrieveAllItems(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam int forestId) {
@@ -57,6 +69,12 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 아이템 배치
+     * @param authorizationHeader 토큰
+     * @param requestPlacementVO 배치할 아이템 정보 요청 객체
+     * @return 정상 처리 시 200 반환
+     */
     @PostMapping("/placement")
     public ResponseEntity<Void> placement(@RequestHeader(value = "Authorization") String authorizationHeader,
                                           @RequestBody RequestPlacementVO requestPlacementVO) {
@@ -71,6 +89,12 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 아이템 재배치
+     * @param authorizationHeader 토큰
+     * @param requestReplacementVO 재배치할 아이템 정보 요청 객체
+     * @return 정상 처리 시 200 반환
+     */
     @PatchMapping("/placement")
     public ResponseEntity<Void> replacement(@RequestHeader(value = "Authorization") String authorizationHeader,
                                             @RequestBody RequestReplacementVO requestReplacementVO) {

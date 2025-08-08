@@ -150,7 +150,9 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         // 3. 위치 변경
         placement.setPositionX(requestReplacementVO.getItemPositionX());
         placement.setPositionY(requestReplacementVO.getItemPositionY());
-
+        placement.setWidth(requestReplacementVO.getItemWidth());
+        placement.setHeight(requestReplacementVO.getItemHeight());
+        placement.setZIndex(requestReplacementVO.getItemZIndex());
         // 4. 저장 (생략 가능 - JPA의 dirty checking)
     }
 
