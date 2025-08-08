@@ -138,6 +138,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Transactional
     @Override
     public void replaceItem(int userId, RequestReplacementVO requestReplacementVO) {
+        // 요청 객체 검증
+        if (!requestReplacementVO.isValid()) {
+            throw new IllegalArgumentException("Invalid replacement request");
+        }
+
         // 1. placementId로 PlacementEntity 조회
         PlacementEntity placement = placementRepository.findById(requestReplacementVO.getPlacementId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + requestReplacementVO.getPlacementId()));
