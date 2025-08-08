@@ -46,13 +46,10 @@ public class QueryForestEmotionController {
 
         int userId = user.getUserId();
 
-        log.info("userId = {}", userId);
-
         List<QueryForestEmotionUserItemDTO> items = queryForestEmotionService.getPieceOfMemory(userId, categoryId, forestId);
 
         if (items == null || items.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("보유한 기억의 조각이 없습니다. 일기를 써서 더 많은 조각들을 모아봐요🌸");
+            return ResponseEntity.ok(items);
         }
 
         return ResponseEntity.ok(items);
