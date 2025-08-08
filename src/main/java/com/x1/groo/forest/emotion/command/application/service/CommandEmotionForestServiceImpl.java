@@ -137,28 +137,33 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     /* 아이템 재배치 */
     @Transactional
     @Override
-    public void replaceItem(int userId, RequestReplacementVO requestReplacementVO) {
-        // 요청 객체 검증
-        if (!requestReplacementVO.isValid()) {
-            throw new IllegalArgumentException("Invalid replacement request");
+    public void replaceItem(int userId, List<RequestReplacementVO> replacementVOList) {
+        if (replacementVOList == null || replacementVOList.isEmpty()) {
+            throw new IllegalArgumentException("재배치할 아이템 정보가 없습니다.");
         }
 
-        // 1. placementId로 PlacementEntity 조회
-        PlacementEntity placement = placementRepository.findById(requestReplacementVO.getPlacementId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + requestReplacementVO.getPlacementId()));
+        for (RequestReplacementVO vo : replacementVOList) {
+            if (!vo.isValid()) {
+                throw new IllegalArgumentException("Invalid replacement request: " + vo.getPlacementId());
+            }
 
-        // 2. 소유자 검증
-        if (placement.getUser() == null || placement.getUser().getId() != userId) {
-            throw new SecurityException("본인의 배치만 수정할 수 있습니다.");
+            // 1. placementId로 PlacementEntity 조회
+            PlacementEntity placement = placementRepository.findById(vo.getPlacementId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + vo.getPlacementId()));
+
+            // 2. 소유자 검증
+            if (placement.getUser() == null || placement.getUser().getId() != userId) {
+                throw new SecurityException("본인의 배치만 수정할 수 있습니다. id=" + vo.getPlacementId());
+            }
+
+            // 3. 위치/크기/Z-Index 변경
+            placement.setPositionX(vo.getItemPositionX());
+            placement.setPositionY(vo.getItemPositionY());
+            placement.setWidth(vo.getItemWidth());
+            placement.setHeight(vo.getItemHeight());
+            placement.setZIndex(vo.getItemZIndex());
         }
-
-        // 3. 위치 변경
-        placement.setPositionX(requestReplacementVO.getItemPositionX());
-        placement.setPositionY(requestReplacementVO.getItemPositionY());
-        placement.setWidth(requestReplacementVO.getItemWidth());
-        placement.setHeight(requestReplacementVO.getItemHeight());
-        placement.setZIndex(requestReplacementVO.getItemZIndex());
-        // 4. 저장 (생략 가능 - JPA의 dirty checking)
+        // JPA의 dirty checking으로 트랜잭션 종료 시 자동 업데이트
     }
 
     /* 방명록 작성 */

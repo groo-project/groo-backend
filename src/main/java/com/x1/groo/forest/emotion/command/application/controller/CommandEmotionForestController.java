@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -97,14 +98,14 @@ public class CommandEmotionForestController {
      */
     @PatchMapping("/placement")
     public ResponseEntity<Void> replacement(@RequestHeader(value = "Authorization") String authorizationHeader,
-                                            @RequestBody RequestReplacementVO requestReplacementVO) {
+                                            @RequestBody List<RequestReplacementVO> replacementVOList) {
 
         // "Bearer " 부분 제거
         String token = authorizationHeader.replace("Bearer", "").trim();
         Claims claims = jwtUtil.parseJwt(token);
         int userId = ((Number) claims.get("userId")).intValue();
 
-        commandEmotionForestService.replaceItem(userId, requestReplacementVO);
+        commandEmotionForestService.replaceItem(userId, replacementVOList);
 
         return ResponseEntity.ok().build();
     }
