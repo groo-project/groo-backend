@@ -31,21 +31,21 @@ public class CommandEmotionForestController {
     }
 
     /**
-     * 단일 아이템 회수
+     * 아이템 회수
      * @param authorizationHeader 토큰
-     * @param placementId 배치된 아이템 배치 id
+     * @param placementIds 배치된 아이템 배치 id 목록
      * @return 정상 처리 시 200 반환
      */
     @DeleteMapping("/placement")
-    public ResponseEntity<Void> retrieveItemById(@RequestHeader(value = "Authorization") String authorizationHeader,
-                                                 @RequestParam int placementId) {
+    public ResponseEntity<Void> retrieveItemByIds(@RequestHeader(value = "Authorization") String authorizationHeader,
+                                                 @RequestParam List<Integer> placementIds) {
 
         // "Bearer " 부분 제거
         String token = authorizationHeader.replace("Bearer", "").trim();
         Claims claims = jwtUtil.parseJwt(token);
         int userId = ((Number) claims.get("userId")).intValue();
 
-        commandEmotionForestService.retrieveItemById(userId, placementId);
+        commandEmotionForestService.retrieveItemByIds(userId, placementIds);
 
         return ResponseEntity.ok().build();
     }
@@ -93,7 +93,7 @@ public class CommandEmotionForestController {
     /**
      * 아이템 재배치
      * @param authorizationHeader 토큰
-     * @param requestReplacementVO 재배치할 아이템 정보 요청 객체
+     * @param replacementVOList 재배치할 아이템 정보 요청 객체 목록
      * @return 정상 처리 시 200 반환
      */
     @PatchMapping("/placement")

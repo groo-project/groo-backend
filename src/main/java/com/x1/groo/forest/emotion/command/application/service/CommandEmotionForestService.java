@@ -8,7 +8,7 @@ import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
 import java.util.List;
 
 public interface CommandEmotionForestService {
-    void retrieveItemById(int userId, int placementId);
+    void retrieveItemByIds(int userId, List<Integer> placementIds);
 
     void retrieveAllItems(int userId, int forestId);
 

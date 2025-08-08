@@ -38,26 +38,30 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     private final MailboxRepository mailboxRepository;
     private final BackgroundRepository backgroundRepository;
 
-    /* 단일 아이템 회수 */
+    /* 아이템 회수 */
     @Transactional
     @Override
-    public void retrieveItemById(int userId, int placementId) {
-        PlacementEntity placement = placementRepository.findById(placementId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + placementId));
+    public void retrieveItemByIds(int userId, List<Integer> placementIds) {
 
-        // userId 검증
-        if (placement.getUser().getId() != userId) {
-            throw new SecurityException("해당 배치에 접근 권한이 없습니다.");
+        for (Integer placementId : placementIds) {
+            PlacementEntity placement = placementRepository.findById(placementId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + placementId));
+
+            // userId 검증
+            if (placement.getUser().getId() != userId) {
+                throw new SecurityException("해당 배치에 접근 권한이 없습니다. id=" + placementId);
+            }
+
+            UserItemEntity userItem = userItemRepository.findById(placement.getUserItem().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 유저 아이템이 존재하지 않습니다. id=" + placement.getUserItem().getId()));
+
+            // 배치 개수 감소
+            userItem.decreasePlacedCount();
+            userItemRepository.save(userItem);
+
+            // 배치 삭제
+            placementRepository.deleteById(placementId);
         }
-
-        UserItemEntity userItem = userItemRepository.findById(placement.getUserItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저 아이템이 존재하지 않습니다. id=" + placement.getUserItem().getId()));
-
-        userItem.decreasePlacedCount();
-
-        userItemRepository.save(userItem);
-
-        placementRepository.deleteById(placementId);
     }
 
     /* 전체 아이템 회수 */
