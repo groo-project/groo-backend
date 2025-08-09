@@ -5,6 +5,8 @@ import com.x1.groo.forest.mate.command.application.service.CommandMateService;
 import com.x1.groo.forest.mate.command.domain.vo.CreateInviteRequest;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "우정의 숲", description = "우정의 숲 관련 기능을 제공합니다.")
 @RestController
 @RequestMapping("/mate")
 @Slf4j
@@ -27,6 +30,7 @@ public class CommandMateController {
         this.commandMateService = commandMateService;
     }
 
+    @Operation(summary = "공유의 숲 탈퇴 및 숲 삭제", description = "숲의 정원이 0명일 경우 숲이 삭제됩니다.")
     @Transactional
     // 공유의 숲 탈퇴 및 숲 삭제(0명이 되었을 때)
     @DeleteMapping("/quit")
@@ -40,7 +44,7 @@ public class CommandMateController {
         return ResponseEntity.ok("공유의 숲 탈퇴 되었습니다.");
     }
 
-    // 초대 링크 생성
+    @Operation(summary = "초대 링크 생성")
     @GetMapping("/link")
     public CreateInviteRequest createInviteLink(@RequestParam int forestId) {
 
@@ -52,7 +56,7 @@ public class CommandMateController {
         return new CreateInviteRequest(inviteLink);
     }
 
-    // 초대 수락
+    @Operation(summary = "초대 수락")
     @PostMapping("/accept/{inviteCode}")
     public ResponseEntity<String> acceptInvite(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                @PathVariable String inviteCode) {
@@ -67,7 +71,7 @@ public class CommandMateController {
 
     }
 
-    /* 우정의 숲 새로 만들기 */
+    @Operation(summary = "우정의 숲 새로 만들기")
     @PostMapping("/forests/new")
     public ResponseEntity<Map<String, String>> createMateForest(
             @RequestHeader(value = "Authorization") String authorizationHeader,

@@ -20,8 +20,9 @@ public class JwtUtil {
     }
 
     public Claims parseJwt(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }

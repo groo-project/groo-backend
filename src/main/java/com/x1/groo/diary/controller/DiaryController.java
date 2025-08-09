@@ -4,16 +4,16 @@ import com.x1.groo.common.JwtUtil;
 import com.x1.groo.diary.dto.*;
 import com.x1.groo.diary.service.DiaryService;
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * 일기 등록 API 엔드포인트
- * Authorization 헤더에서 JWT를 파싱하여 userId를 추출
- */
+
+@Tag(name = "일기", description = "일기 작성, 수정, 임시저장 및 조회 기능을 제공합니다.")
 @RestController
 @RequestMapping("/api/diaries")
 @RequiredArgsConstructor
@@ -22,6 +22,7 @@ public class DiaryController {
     private final DiaryService diaryService;
     private final JwtUtil jwtUtil;
 
+    @Operation(summary = "일기 등록")
     @PostMapping
     public ResponseEntity<DiaryResponseDTO> create(
             @RequestBody DiaryRequestDTO req,
@@ -43,9 +44,7 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 임시 저장 핸들러
-     */
+    @Operation(summary = "일기 임시저장 등록")
     @PostMapping("/save")
     public ResponseEntity<DiarySaveResponseDTO> save(
             @RequestBody DiarySaveRequestDTO req,
@@ -61,9 +60,8 @@ public class DiaryController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 임시 저장 조회
-     */
+
+    @Operation(summary = "일기 저장 조회")
     @GetMapping("/save")
     public ResponseEntity<List<DiarySaveInfoDTO>> getSaves(
             @RequestHeader("Authorization") String authHeader
@@ -80,9 +78,7 @@ public class DiaryController {
         return claims.get("userId", Number.class).intValue();
     }
 
-    /**
-     * 임시 저장 상세 조회
-     */
+    @Operation(summary = "일기 임기저장 상세 조회")
     @GetMapping("/save/{diaryId}")
     public ResponseEntity<DiarySaveDetailDTO> getSaveDetail(
             @PathVariable int diaryId,
@@ -98,9 +94,7 @@ public class DiaryController {
         return ResponseEntity.ok(detail);
     }
 
-    /**
-     * 임시 저장된 일기 수정
-     */
+    @Operation(summary = "임시 저장된 일기 수정")
     @PutMapping("/save/{diaryId}")
     public ResponseEntity<DiarySaveUpdateResponseDTO> updateSave(
             @PathVariable int diaryId,
@@ -112,9 +106,7 @@ public class DiaryController {
         return ResponseEntity.ok(resp);
     }
 
-    /**
-     * 임시 저장된 일기 삭제
-     */
+    @Operation(summary = "임시 저장된 일기 삭제")
     @DeleteMapping("/save/{diaryId}")
     public ResponseEntity<Void> deleteSave(
             @PathVariable int diaryId,
@@ -125,9 +117,7 @@ public class DiaryController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * 임시 저장된 일기 등록
-     */
+    @Operation(summary = "임시 저장된 일기 등록")
     @PostMapping("/save/{diaryId}/publish")
     public ResponseEntity<DiaryResponseDTO> publishSave(
             @PathVariable int diaryId,
@@ -137,9 +127,7 @@ public class DiaryController {
         return ResponseEntity.ok(diaryService.publishSave(userId, diaryId));
     }
 
-    /**
-     * 일기 수정
-     **/
+    @Operation(summary = "일기 수정")
     @PutMapping("/edit")
     public ResponseEntity<DiaryUpdateResponseDTO> edit(
             @RequestBody DiaryUpdateRequestDTO req,
