@@ -1,6 +1,7 @@
 package com.x1.groo.diary.controller;
 
-import com.x1.groo.common.JwtUtil;
+import com.x1.groo.security.CustomUserDetails;
+import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.diary.dto.*;
 import com.x1.groo.diary.service.DiaryService;
 import io.jsonwebtoken.Claims;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,20 +28,9 @@ public class DiaryController {
     @PostMapping
     public ResponseEntity<DiaryResponseDTO> create(
             @RequestBody DiaryRequestDTO req,
-            @RequestHeader("Authorization") String authorizationHeader
-    ) {
-        // 1) "Bearer " 제거 및 토큰 파싱
-        String token = authorizationHeader.startsWith("Bearer ")
-                ? authorizationHeader.substring(7)
-                : authorizationHeader.trim();
-
-        // 2) JWT 파싱
-        Claims claims = jwtUtil.parseJwt(token);
-
-        // 3) userId 클레임 꺼내기
-        int userId = claims.get("userId", Number.class).intValue();
-
-        // 4) 서비스 호출 후 DTO 반환
+            @AuthenticationPrincipal CustomUserDetails user
+            ) {
+        int userId = user.getUserId();
         DiaryResponseDTO response = diaryService.createDiary(req, userId);
         return ResponseEntity.ok(response);
     }
@@ -48,14 +39,9 @@ public class DiaryController {
     @PostMapping("/save")
     public ResponseEntity<DiarySaveResponseDTO> save(
             @RequestBody DiarySaveRequestDTO req,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        String token = authHeader.startsWith("Bearer ")
-                ? authHeader.substring(7)
-                : authHeader.trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = claims.get("userId", Number.class).intValue();
-
+        int userId = user.getUserId();
         DiarySaveResponseDTO response = diaryService.saveDiary(req, userId);
         return ResponseEntity.ok(response);
     }
@@ -64,32 +50,27 @@ public class DiaryController {
     @Operation(summary = "일기 저장 조회")
     @GetMapping("/save")
     public ResponseEntity<List<DiarySaveInfoDTO>> getSaves(
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int userId = extractUserId(authHeader);
+        int userId = user.getUserId();
         return ResponseEntity.ok(diaryService.getSaves(userId));
     }
 
-    private int extractUserId(String authHeader) {
-        String token = authHeader.startsWith("Bearer ")
-                ? authHeader.substring(7)
-                : authHeader.trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        return claims.get("userId", Number.class).intValue();
-    }
+//    private int extractUserId(String authHeader) {
+//        String token = authHeader.startsWith("Bearer ")
+//                ? authHeader.substring(7)
+//                : authHeader.trim();
+//        Claims claims = jwtUtil.parseJwt(token);
+//        return claims.get("userId", Number.class).intValue();
+//    }
 
     @Operation(summary = "일기 임기저장 상세 조회")
     @GetMapping("/save/{diaryId}")
     public ResponseEntity<DiarySaveDetailDTO> getSaveDetail(
             @PathVariable int diaryId,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        String token = authHeader.startsWith("Bearer ")
-                ? authHeader.substring(7)
-                : authHeader.trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = claims.get("userId", Number.class).intValue();
-
+        int userId = user.getUserId();
         DiarySaveDetailDTO detail = diaryService.getSaveDetail(userId, diaryId);
         return ResponseEntity.ok(detail);
     }
@@ -99,9 +80,9 @@ public class DiaryController {
     public ResponseEntity<DiarySaveUpdateResponseDTO> updateSave(
             @PathVariable int diaryId,
             @RequestBody DiarySaveRequestDTO req,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int userId = extractUserId(authHeader);
+        int userId = user.getUserId();
         DiarySaveUpdateResponseDTO resp = diaryService.updateSave(userId, diaryId, req);
         return ResponseEntity.ok(resp);
     }
@@ -110,9 +91,9 @@ public class DiaryController {
     @DeleteMapping("/save/{diaryId}")
     public ResponseEntity<Void> deleteSave(
             @PathVariable int diaryId,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int userId = extractUserId(authHeader);
+        int userId = user.getUserId();
         diaryService.deleteSave(userId, diaryId);
         return ResponseEntity.noContent().build();
     }
@@ -121,9 +102,9 @@ public class DiaryController {
     @PostMapping("/save/{diaryId}/publish")
     public ResponseEntity<DiaryResponseDTO> publishSave(
             @PathVariable int diaryId,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        int userId = extractUserId(authHeader);
+        int userId = user.getUserId();
         return ResponseEntity.ok(diaryService.publishSave(userId, diaryId));
     }
 
@@ -131,13 +112,9 @@ public class DiaryController {
     @PutMapping("/edit")
     public ResponseEntity<DiaryUpdateResponseDTO> edit(
             @RequestBody DiaryUpdateRequestDTO req,
-            @RequestHeader("Authorization") String authHeader
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        String token = authHeader.startsWith("Bearer ")
-                ? authHeader.substring(7)
-                : authHeader.trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = claims.get("userId", Number.class).intValue();
+        int userId = user.getUserId();
 
         DiaryUpdateResponseDTO updatedDiary = diaryService.updateDiary(req, userId);
         return ResponseEntity.ok(updatedDiary);

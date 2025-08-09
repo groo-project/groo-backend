@@ -1,6 +1,7 @@
 package com.x1.groo.forest.mate.query.controller;
 
-import com.x1.groo.common.JwtUtil;
+import com.x1.groo.security.CustomUserDetails;
+import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.mate.query.dto.DiaryByDateDTO;
 import com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,15 +30,11 @@ public class MateController {
     @Operation(summary = "날짜별 일기 조회")
     @GetMapping("/diary/{forestId}/date")
     public ResponseEntity<List<DiaryByDateDTO>> getDiariesByDate(
-            @RequestHeader(value = "Authorization") String authorizationHeader,
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable int forestId,
             @RequestParam LocalDate date
     ) {
-        // JWT에서 userId 추출
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
-
+        int userId = user.getUserId();
         // 서비스 호출
         List<DiaryByDateDTO> diaries = mateService.findDiaries(userId, forestId, date);
         return ResponseEntity.ok(diaries);
@@ -45,14 +43,12 @@ public class MateController {
     @Operation(summary = "월별 일기 조회")
     @GetMapping("/diary/{forestId}/month")
     public ResponseEntity<List<DiaryByMonthDTO>> getDiariesByMonth(
-            @RequestHeader(value = "Authorization") String authorizationHeader,
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable int forestId,
             @RequestParam int year,
             @RequestParam int month
     ) {
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = user.getUserId();
 
         List<DiaryByMonthDTO> diaries = mateService.findDiariesByMonth(userId, forestId, year, month);
         return ResponseEntity.ok(diaries);
@@ -61,11 +57,9 @@ public class MateController {
     @Operation(summary = "유저가 입장중인 우정의 숲 조회")
     @GetMapping("/forests")
     public List<MateForestResponseDTO> getMyForests(
-            @RequestHeader(value = "Authorization") String authorizationHeader) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = user.getUserId();
 
         // 유저 ID로 우정의 숲 리스트 조회
         return mateService.getForestsByUserId(userId);

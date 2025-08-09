@@ -1,7 +1,10 @@
 package com.x1.groo.user.service;
 
 import com.x1.groo.email.dto.EmailCheckDTO;
+import com.x1.groo.security.dto.TokenDTO;
+import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
+import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,4 +23,7 @@ public interface UserService extends UserDetailsService {
     boolean isEmailRegistered(String email);
 
     ResponseEntity<String> verifyEmailAuthentication(@Valid EmailCheckDTO emailCheckDto);
+
+    UserDTO getUserById(String memNo);
+
 }

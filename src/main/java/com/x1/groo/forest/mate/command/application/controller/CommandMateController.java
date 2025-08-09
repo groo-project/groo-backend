@@ -1,6 +1,7 @@
 package com.x1.groo.forest.mate.command.application.controller;
 
-import com.x1.groo.common.JwtUtil;
+import com.x1.groo.security.CustomUserDetails;
+import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.mate.command.application.service.CommandMateService;
 import com.x1.groo.forest.mate.command.domain.vo.CreateInviteRequest;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
@@ -11,6 +12,8 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -34,13 +37,12 @@ public class CommandMateController {
     @Transactional
     // 공유의 숲 탈퇴 및 숲 삭제(0명이 되었을 때)
     @DeleteMapping("/quit")
-    public ResponseEntity<String> quit(@RequestHeader(value = "Authorization") String authorizationHeader,
+    public ResponseEntity<String> quit(@AuthenticationPrincipal CustomUserDetails user,
                                        @RequestParam int forestId) {
-        String token = authorizationHeader.replace("Bearer ", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
 
+        int userId = user.getUserId();
         commandMateService.quit(userId, forestId);
+
         return ResponseEntity.ok("공유의 숲 탈퇴 되었습니다.");
     }
 
@@ -58,13 +60,10 @@ public class CommandMateController {
 
     @Operation(summary = "초대 수락")
     @PostMapping("/accept/{inviteCode}")
-    public ResponseEntity<String> acceptInvite(@RequestHeader(value = "Authorization") String authorizationHeader,
+    public ResponseEntity<String> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
                                                @PathVariable String inviteCode) {
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer ", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
 
+        int userId = user.getUserId();
         commandMateService.acceptInvite(userId, inviteCode);
 
         return ResponseEntity.ok("초대 수락 성공");
@@ -74,12 +73,10 @@ public class CommandMateController {
     @Operation(summary = "우정의 숲 새로 만들기")
     @PostMapping("/forests/new")
     public ResponseEntity<Map<String, String>> createMateForest(
-            @RequestHeader(value = "Authorization") String authorizationHeader,
+            @AuthenticationPrincipal CustomUserDetails user,
             @RequestBody CreateMateForestRequest request) {
 
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = user.getUserId();
 
         commandMateService.createMateForest(userId, request);
 
