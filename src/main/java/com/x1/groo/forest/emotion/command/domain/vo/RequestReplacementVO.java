@@ -12,5 +12,17 @@ import java.math.BigDecimal;
 public class RequestReplacementVO {
     private BigDecimal itemPositionX;
     private BigDecimal itemPositionY;
+    private BigDecimal itemWidth;
+    private BigDecimal itemHeight;
+    private Integer itemZIndex;
     private int placementId;
+
+    public boolean isValid() {
+        return itemPositionX != null &&
+                itemPositionY != null &&
+                itemWidth != null &&
+                itemHeight != null &&
+                itemZIndex != null &&
+                placementId > 0;
+    }
 }

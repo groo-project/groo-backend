@@ -38,26 +38,30 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     private final MailboxRepository mailboxRepository;
     private final BackgroundRepository backgroundRepository;
 
-    /* 단일 아이템 회수 */
+    /* 아이템 회수 */
     @Transactional
     @Override
-    public void retrieveItemById(int userId, int placementId) {
-        PlacementEntity placement = placementRepository.findById(placementId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + placementId));
+    public void retrieveItemByIds(int userId, List<Integer> placementIds) {
 
-        // userId 검증
-        if (placement.getUser().getId() != userId) {
-            throw new SecurityException("해당 배치에 접근 권한이 없습니다.");
+        for (Integer placementId : placementIds) {
+            PlacementEntity placement = placementRepository.findById(placementId)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + placementId));
+
+            // userId 검증
+            if (placement.getUser().getId() != userId) {
+                throw new SecurityException("해당 배치에 접근 권한이 없습니다. id=" + placementId);
+            }
+
+            UserItemEntity userItem = userItemRepository.findById(placement.getUserItem().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 유저 아이템이 존재하지 않습니다. id=" + placement.getUserItem().getId()));
+
+            // 배치 개수 감소
+            userItem.decreasePlacedCount();
+            userItemRepository.save(userItem);
+
+            // 배치 삭제
+            placementRepository.deleteById(placementId);
         }
-
-        UserItemEntity userItem = userItemRepository.findById(placement.getUserItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저 아이템이 존재하지 않습니다. id=" + placement.getUserItem().getId()));
-
-        userItem.decreasePlacedCount();
-
-        userItemRepository.save(userItem);
-
-        placementRepository.deleteById(placementId);
     }
 
     /* 전체 아이템 회수 */
@@ -137,21 +141,33 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     /* 아이템 재배치 */
     @Transactional
     @Override
-    public void replaceItem(int userId, RequestReplacementVO requestReplacementVO) {
-        // 1. placementId로 PlacementEntity 조회
-        PlacementEntity placement = placementRepository.findById(requestReplacementVO.getPlacementId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + requestReplacementVO.getPlacementId()));
-
-        // 2. 소유자 검증
-        if (placement.getUser() == null || placement.getUser().getId() != userId) {
-            throw new SecurityException("본인의 배치만 수정할 수 있습니다.");
+    public void replaceItem(int userId, List<RequestReplacementVO> replacementVOList) {
+        if (replacementVOList == null || replacementVOList.isEmpty()) {
+            throw new IllegalArgumentException("재배치할 아이템 정보가 없습니다.");
         }
 
-        // 3. 위치 변경
-        placement.setPositionX(requestReplacementVO.getItemPositionX());
-        placement.setPositionY(requestReplacementVO.getItemPositionY());
+        for (RequestReplacementVO vo : replacementVOList) {
+            if (!vo.isValid()) {
+                throw new IllegalArgumentException("Invalid replacement request: " + vo.getPlacementId());
+            }
 
-        // 4. 저장 (생략 가능 - JPA의 dirty checking)
+            // 1. placementId로 PlacementEntity 조회
+            PlacementEntity placement = placementRepository.findById(vo.getPlacementId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + vo.getPlacementId()));
+
+            // 2. 소유자 검증
+            if (placement.getUser() == null || placement.getUser().getId() != userId) {
+                throw new SecurityException("본인의 배치만 수정할 수 있습니다. id=" + vo.getPlacementId());
+            }
+
+            // 3. 위치/크기/Z-Index 변경
+            placement.setPositionX(vo.getItemPositionX());
+            placement.setPositionY(vo.getItemPositionY());
+            placement.setWidth(vo.getItemWidth());
+            placement.setHeight(vo.getItemHeight());
+            placement.setZIndex(vo.getItemZIndex());
+        }
+        // JPA의 dirty checking으로 트랜잭션 종료 시 자동 업데이트
     }
 
     /* 방명록 작성 */

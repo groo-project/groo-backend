@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "감정숲", description = "감정의 숲 관련 기능을 제공합니다.")
@@ -32,21 +33,35 @@ public class CommandEmotionForestController {
         this.jwtUtil = jwtUtil;
     }
 
-    @Operation(summary = "개별 기록의 조각 회수")
+
+    /**
+     * 아이템 회수
+     * @param authorizationHeader 토큰
+     * @param placementIds 배치된 아이템 배치 id 목록
+     * @return 정상 처리 시 200 반환
+     */
+    @Operation(summary = "기록의 조각 회수")
     @DeleteMapping("/placement")
-    public ResponseEntity<Void> retrieveItemById(@RequestHeader(value = "Authorization") String authorizationHeader,
-                                                 @RequestParam int placementId) {
+    public ResponseEntity<Void> retrieveItemByIds(@RequestHeader(value = "Authorization") String authorizationHeader,
+                                                 @RequestParam List<Integer> placementIds) {
 
         // "Bearer " 부분 제거
         String token = authorizationHeader.replace("Bearer", "").trim();
         Claims claims = jwtUtil.parseJwt(token);
         int userId = ((Number) claims.get("userId")).intValue();
 
-        commandEmotionForestService.retrieveItemById(userId, placementId);
+        commandEmotionForestService.retrieveItemByIds(userId, placementIds);
 
         return ResponseEntity.ok().build();
     }
 
+
+    /**
+     * 아이템 전체 회수
+     * @param authorizationHeader 토큰
+     * @param forestId 전체 회수를 진행 할 숲 id
+     * @return 정상 처리 시 200 반환
+     */
     @Operation(summary = "모든 기록의 조각 회수")
     @DeleteMapping("/placements")
     public ResponseEntity<Void> retrieveAllItems(@RequestHeader(value = "Authorization") String authorizationHeader,
@@ -62,6 +77,13 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+
+    /**
+     * 아이템 배치
+     * @param authorizationHeader 토큰
+     * @param requestPlacementVO 배치할 아이템 정보 요청 객체
+     * @return 정상 처리 시 200 반환
+     */
     @Operation(summary = "기록의 조각 배치")
     @PostMapping("/placement")
     public ResponseEntity<Void> placement(@RequestHeader(value = "Authorization") String authorizationHeader,
@@ -77,17 +99,24 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+
+    /**
+     * 배치된 아이템 재배치
+     * @param authorizationHeader 토큰
+     * @param replacementVOList 재배치할 아이템 정보 요청 객체 목록
+     * @return 정상 처리 시 200 반환
+     */
     @Operation(summary = "배치된 기록의 조각 수정")
     @PatchMapping("/placement")
     public ResponseEntity<Void> replacement(@RequestHeader(value = "Authorization") String authorizationHeader,
-                                            @RequestBody RequestReplacementVO requestReplacementVO) {
+                                            @RequestBody List<RequestReplacementVO> replacementVOList) {
 
         // "Bearer " 부분 제거
         String token = authorizationHeader.replace("Bearer", "").trim();
         Claims claims = jwtUtil.parseJwt(token);
         int userId = ((Number) claims.get("userId")).intValue();
 
-        commandEmotionForestService.replaceItem(userId, requestReplacementVO);
+        commandEmotionForestService.replaceItem(userId, replacementVOList);
 
         return ResponseEntity.ok().build();
     }
