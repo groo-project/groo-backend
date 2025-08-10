@@ -134,24 +134,19 @@ public class UserServiceImpl implements UserService {
         UserEntity loginUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(email + " 해당 유저를 찾을 수 없습니다."));  // email 필드로 where절을 걸어서 조회하는 쿼리 메소드
 
-        /* 설명. 사용자가 로그인 시 id를(이메일을) 잘못 입력 했다면 */
 //        if(loginUser == null) {
 //            throw new UsernameNotFoundException(email + " 이메일 아이디의 유저는 존재하지 않습니다.");
 //        }
 
-        // 권한 만들기
         List<GrantedAuthority> auths =
                 List.of(new SimpleGrantedAuthority("ROLE_" + loginUser.getRole().name()));
 
         // DTO → CustomUserDetails
 //        UserDTO dto = UserDTO.of(loginUser);
         UserDTO dto = UserDTO.builder()
-                .id(loginUser.getId())                 // int/Long 맞춰서
+                .id(loginUser.getId())
                 .email(loginUser.getEmail())
-                .password(loginUser.getPassword())     // 외부 응답에 쓰지 않을 거면 @JsonIgnore 권장
                 .nickname(loginUser.getNickname())
-//                .type(loginUser.getType())             // enum ROLE/TYPE 같은 거 쓰면 그대로
-                // .status(e.getStatus())      // 있으면 추가
                 .build();
 
         return new CustomUserDetails(dto, auths);
