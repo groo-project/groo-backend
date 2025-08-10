@@ -7,6 +7,8 @@ import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
 import com.x1.groo.forest.mate.query.service.MateServiceImpl;
 import io.jsonwebtoken.Claims;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "우정의 숲")
 @RestController
 @RequestMapping("/mate")
 @RequiredArgsConstructor
@@ -22,7 +25,7 @@ public class MateController {
     private final MateServiceImpl mateService;
     private final JwtUtil jwtUtil;
 
-    /* 날짜별 일기 조회 */
+    @Operation(summary = "날짜별 일기 조회")
     @GetMapping("/diary/{forestId}/date")
     public ResponseEntity<List<DiaryByDateDTO>> getDiariesByDate(
             @RequestHeader(value = "Authorization") String authorizationHeader,
@@ -39,7 +42,7 @@ public class MateController {
         return ResponseEntity.ok(diaries);
     }
 
-    /* 월별 일기 조회 */
+    @Operation(summary = "월별 일기 조회")
     @GetMapping("/diary/{forestId}/month")
     public ResponseEntity<List<DiaryByMonthDTO>> getDiariesByMonth(
             @RequestHeader(value = "Authorization") String authorizationHeader,
@@ -55,7 +58,7 @@ public class MateController {
         return ResponseEntity.ok(diaries);
     }
 
-    /* 유저가 입장중인 우정의 숲 조회 */
+    @Operation(summary = "유저가 입장중인 우정의 숲 조회")
     @GetMapping("/forests")
     public List<MateForestResponseDTO> getMyForests(
             @RequestHeader(value = "Authorization") String authorizationHeader) {
@@ -68,7 +71,7 @@ public class MateController {
         return mateService.getForestsByUserId(userId);
     }
 
-    /* 우정의 숲 상세 조회 */
+    @Operation(summary = "우정의 숲 상세 조회")
     @GetMapping("/detail/{forestId}")
     public MateForestDetailDTO getForestDetail(@PathVariable int forestId) {
 
