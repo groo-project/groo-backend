@@ -2,10 +2,7 @@ package com.x1.groo.forest.emotion.command.application.controller;
 
 import com.x1.groo.common.JwtUtil;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestMailboxVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestPlacementVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
+import com.x1.groo.forest.emotion.command.domain.vo.*;
 import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -117,6 +114,27 @@ public class CommandEmotionForestController {
         int userId = ((Number) claims.get("userId")).intValue();
 
         commandEmotionForestService.replaceItem(userId, replacementVOList);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 보관된 아이템 배치
+     * @param authorizationHeader 토큰
+     * @param requestReplantVO 배치 및 보관된 아이템 정보
+     * @return 정상 처리 시 200 반환
+     */
+    @Operation(summary = "보관된 기록의 조각 배치")
+    @PostMapping("/placements/from-storage")
+    public ResponseEntity<Void> placeStoredItem(@RequestHeader(value = "Authorization") String authorizationHeader,
+                                        @RequestBody RequestReplantVO requestReplantVO) {
+
+        // "Bearer " 부분 제거
+        String token = authorizationHeader.replace("Bearer", "").trim();
+        Claims claims = jwtUtil.parseJwt(token);
+        int userId = ((Number) claims.get("userId")).intValue();
+
+        commandEmotionForestService.placeStoredItem(userId, requestReplantVO);
 
         return ResponseEntity.ok().build();
     }
