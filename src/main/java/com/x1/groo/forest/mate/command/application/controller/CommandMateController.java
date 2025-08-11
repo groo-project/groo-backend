@@ -52,19 +52,17 @@ public class CommandMateController {
         int userId = user.getUserId();
         String inviteCode = commandMateService.createInviteLink(forestId, userId);
 
-        // 초대코드를 이용해서 최종 초대링크로 감싸기
         String inviteLink = "http://localhost:5173/mate/invite/" + inviteCode;
         return new CreateInviteRequest(inviteLink);
     }
 
     @Operation(summary = "초대 수락")
-    @PostMapping("/accept/{inviteCode}")
+    @PostMapping("/accept/{id}")
     public ResponseEntity<Map<String,Integer>> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
-                                               @PathVariable String inviteCode) {
+                                               @PathVariable int id) {
 
         int userId = user.getUserId();
-        int forestId = commandMateService.acceptInvite(userId, inviteCode);
-
+        int forestId = commandMateService.acceptInvite(userId, id);
 
         return ResponseEntity.ok(Map.of("forestId",forestId));
 

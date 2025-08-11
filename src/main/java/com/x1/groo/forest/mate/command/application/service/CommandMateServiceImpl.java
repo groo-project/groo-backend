@@ -20,16 +20,17 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+
+import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.REVOKED;
+import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.USED;
 
 @Service
 @RequiredArgsConstructor
 public class CommandMateServiceImpl implements CommandMateService {
 
-
-    // 문자열(String)로 key-value를 저장하는 간단한 템플릿
-    private final StringRedisTemplate redisTemplate;
     private final SharedForestRepository sharedForestRepository;
     private final ForestRepository forestRepository;
     private final UserRepository userRepository;
@@ -89,40 +90,40 @@ public class CommandMateServiceImpl implements CommandMateService {
     // 초대 수락
     @Transactional
     @Override
-    public int acceptInvite(int userId, String inviteCode) {
+    public int acceptInvite(int userId, int id) {
 
-        String redisKey = "invite:" + inviteCode;
-        String value = redisTemplate.opsForValue().get(redisKey);
 
-        if (value == null) {
+        ForestInviteEntity invite = forestInviteRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID));
+
+        int forestId = invite.getForestId();
+
+        if (invite.getStatus() == REVOKED)
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_REVOKED);
+        if (invite.getStatus() == USED)
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_USED);
+        if (LocalDateTime.now().isAfter(invite.getExpiresAt()))
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_EXPIRED);
+
+        // 초대코드 동시 수락 방지
+        int updated = forestInviteRepository.consume(id);
+        if (updated != 1) {
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
         }
 
-        int forestId;
-        try {
-            forestId = Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
-        }
-
-        // 1. 이미 수락했는지 검사
-        boolean alreadyJoined = sharedForestRepository.existsByUserIdAndForestId(userId, forestId);
-        if (alreadyJoined) {
+        // 정원은 Lock 걸고 카운트
+        if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {
             throw new CustomException(ErrorCode.FOREST_ALREADY_ACCEPTED_INVITE);
         }
 
-        // 2. 현재 공유숲 참여 인원이 4명 이상인지 검사
-        int currentMemberCount = sharedForestRepository.countByForestId(forestId);
-        if (currentMemberCount >= 4) {
+        int count = sharedForestRepository.countByForestIdForUpdate(forestId);
+        if (count >= 4) {
             throw new CustomException(ErrorCode.FOREST_FULL);
         }
 
-        // 3. 가입
+        // 가입
         SharedForestEntity sharedForest = new SharedForestEntity(userId, forestId);
         sharedForestRepository.save(sharedForest);
-
-        // 4. 초대코드 삭제
-        redisTemplate.delete(redisKey);
 
         return forestId;
 

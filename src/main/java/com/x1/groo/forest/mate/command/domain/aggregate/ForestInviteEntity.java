@@ -1,6 +1,7 @@
 package com.x1.groo.forest.mate.command.domain.aggregate;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalDateTime;
 import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.ACTIVE;
 
 @Setter
+@Getter
 @Entity
 @Table(name = "forest_invite")
 public class ForestInviteEntity {
