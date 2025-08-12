@@ -5,7 +5,7 @@ import com.x1.groo.forest.emotion.command.domain.vo.*;
 import java.util.List;
 
 public interface CommandEmotionForestService {
-    void retrieveItemByIds(int userId, List<Integer> placementIds);
+    void retrieveItemsByIds(int userId, List<Integer> placementIds);
 
     void retrieveAllItems(int userId, int forestId);
 

@@ -39,7 +39,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     /* 아이템 회수 */
     @Transactional
     @Override
-    public void retrieveItemByIds(int userId, List<Integer> placementIds) {
+    public void retrieveItemsByIds(int userId, List<Integer> placementIds) {
 
         for (Integer placementId : placementIds) {
             PlacementEntity placement = placementRepository.findById(placementId)

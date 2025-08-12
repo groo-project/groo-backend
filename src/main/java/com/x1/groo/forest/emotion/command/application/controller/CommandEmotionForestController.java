@@ -50,7 +50,7 @@ public class CommandEmotionForestController {
 
         int userId = extractUserId(authorizationHeader);
 
-        commandEmotionForestService.retrieveItemByIds(userId, placementIds);
+        commandEmotionForestService.retrieveItemsByIds(userId, placementIds);
 
         return ResponseEntity.ok().build();
     }
