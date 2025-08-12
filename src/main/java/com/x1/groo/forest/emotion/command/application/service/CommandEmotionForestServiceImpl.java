@@ -8,10 +8,7 @@ import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
 import com.x1.groo.forest.emotion.command.domain.aggregate.*;
 import com.x1.groo.forest.emotion.command.domain.repository.*;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestMailboxVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestPlacementVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
+import com.x1.groo.forest.emotion.command.domain.vo.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -41,7 +39,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     /* 아이템 회수 */
     @Transactional
     @Override
-    public void retrieveItemByIds(int userId, List<Integer> placementIds) {
+    public void retrieveItemsByIds(int userId, List<Integer> placementIds) {
 
         for (Integer placementId : placementIds) {
             PlacementEntity placement = placementRepository.findById(placementId)
@@ -138,7 +136,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         placementRepository.save(placement);
     }
 
-    /* 아이템 재배치 */
+    /* 배치된 아이템 재배치 */
     @Transactional
     @Override
     public void replaceItem(int userId, List<RequestReplacementVO> replacementVOList) {
@@ -168,6 +166,35 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
             placement.setZIndex(vo.getItemZIndex());
         }
         // JPA의 dirty checking으로 트랜잭션 종료 시 자동 업데이트
+    }
+    
+    /* 회수 혹은 보관된 아이템 배치 */
+    @Transactional
+    @Override
+    public void placeStoredItem(int userId, RequestReplantVO requestReplantVO) {
+        // 1. userItemId로 UserItemEntity 조회
+        UserItemEntity userItem = userItemRepository.findById(requestReplantVO.getUserItemId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 보유 정보가 존재하지 않습니다."));
+
+        // 2. 소유자 검증
+        if (userItem.getUser() == null || !Objects.equals(userItem.getUser().getId(), userId)) {
+            throw new SecurityException("사용자 정보가 일치하지 않습니다.");
+        }
+
+        // 3. placement 생성
+        PlacementEntity placement = new PlacementEntity();
+        placement.setPositionX(requestReplantVO.getItemPositionX());
+        placement.setPositionY(requestReplantVO.getItemPositionY());
+        placement.setWidth(requestReplantVO.getItemWidth());
+        placement.setHeight(requestReplantVO.getItemHeight());
+        placement.setZIndex(requestReplantVO.getItemZIndex());
+        placement.setUser(userItem.getUser());
+        placement.setUserItem(userItem);
+
+        placementRepository.save(placement);
+
+        // 4. userItem의 placed_count 증가
+        userItem.incrementPlacedCount();
     }
 
     /* 방명록 작성 */
@@ -252,6 +279,4 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         forest.setName(newName);
         forestRepository.save(forest);
     }
-
-
 }

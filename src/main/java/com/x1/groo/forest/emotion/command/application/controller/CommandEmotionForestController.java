@@ -2,10 +2,7 @@ package com.x1.groo.forest.emotion.command.application.controller;
 
 import com.x1.groo.common.JwtUtil;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestMailboxVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestPlacementVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
+import com.x1.groo.forest.emotion.command.domain.vo.*;
 import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +30,12 @@ public class CommandEmotionForestController {
         this.jwtUtil = jwtUtil;
     }
 
+    // 토큰에서 userId 추출하는 메서드
+    private int extractUserId(String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer", "").trim();
+        Claims claims = jwtUtil.parseJwt(token);
+        return ((Number) claims.get("userId")).intValue();
+    }
 
     /**
      * 아이템 회수
@@ -42,15 +45,12 @@ public class CommandEmotionForestController {
      */
     @Operation(summary = "기록의 조각 회수")
     @DeleteMapping("/placement")
-    public ResponseEntity<Void> retrieveItemByIds(@RequestHeader(value = "Authorization") String authorizationHeader,
+    public ResponseEntity<Void> retrieveItems(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam List<Integer> placementIds) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
-        commandEmotionForestService.retrieveItemByIds(userId, placementIds);
+        commandEmotionForestService.retrieveItemsByIds(userId, placementIds);
 
         return ResponseEntity.ok().build();
     }
@@ -67,10 +67,7 @@ public class CommandEmotionForestController {
     public ResponseEntity<Void> retrieveAllItems(@RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestParam int forestId) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.retrieveAllItems(userId, forestId);
 
@@ -86,13 +83,10 @@ public class CommandEmotionForestController {
      */
     @Operation(summary = "기록의 조각 배치")
     @PostMapping("/placement")
-    public ResponseEntity<Void> placement(@RequestHeader(value = "Authorization") String authorizationHeader,
+    public ResponseEntity<Void> placeItem(@RequestHeader(value = "Authorization") String authorizationHeader,
                                           @RequestBody RequestPlacementVO requestPlacementVO) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.placeItem(userId, requestPlacementVO);
 
@@ -108,15 +102,30 @@ public class CommandEmotionForestController {
      */
     @Operation(summary = "배치된 기록의 조각 수정")
     @PatchMapping("/placement")
-    public ResponseEntity<Void> replacement(@RequestHeader(value = "Authorization") String authorizationHeader,
+    public ResponseEntity<Void> replaceItems(@RequestHeader(value = "Authorization") String authorizationHeader,
                                             @RequestBody List<RequestReplacementVO> replacementVOList) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.replaceItem(userId, replacementVOList);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 보관된 아이템 배치
+     * @param authorizationHeader 토큰
+     * @param requestReplantVO 배치 및 보관된 아이템 정보
+     * @return 정상 처리 시 200 반환
+     */
+    @Operation(summary = "보관된 기록의 조각 배치")
+    @PostMapping("/placements/from-storage")
+    public ResponseEntity<Void> placeStoredItem(@RequestHeader(value = "Authorization") String authorizationHeader,
+                                        @RequestBody RequestReplantVO requestReplantVO) {
+
+        int userId = extractUserId(authorizationHeader);
+
+        commandEmotionForestService.placeStoredItem(userId, requestReplantVO);
 
         return ResponseEntity.ok().build();
     }
@@ -126,10 +135,7 @@ public class CommandEmotionForestController {
     public ResponseEntity<Void> createMailbox(@RequestHeader(value = "Authorization") String authorizationHeader,
                                               @RequestBody RequestMailboxVO requestMailboxVO) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.createMailbox(userId, requestMailboxVO);
 
@@ -142,10 +148,7 @@ public class CommandEmotionForestController {
                                               @RequestParam int mailboxId,
                                               @RequestParam int forestId) {
 
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.deleteMailbox(userId, mailboxId, forestId);
 
@@ -156,10 +159,8 @@ public class CommandEmotionForestController {
     @PatchMapping("/public/{forestId}")
     public ResponseEntity<Void> updateForestPublic(@PathVariable int forestId,
                                                    @RequestHeader(value = "Authorization") String authorizationHeader) {
-        // "Bearer " 부분 제거
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);  // JWT 토큰 파싱
-        int userId = ((Number) claims.get("userId")).intValue();  // userId 추출
+
+        int userId = extractUserId(authorizationHeader);
 
         // 숲 공개여부 변경 로직 실행
         commandEmotionForestService.updateForestPublic(forestId, userId);
@@ -173,9 +174,7 @@ public class CommandEmotionForestController {
             @RequestHeader(value = "Authorization") String authorizationHeader,
             @RequestBody RequestCreateVO request) {
 
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+        int userId = extractUserId(authorizationHeader);
 
         commandEmotionForestService.createEmotionForest(userId, request);
 
@@ -187,9 +186,8 @@ public class CommandEmotionForestController {
     public ResponseEntity<Void> updateForestName(@PathVariable int forestId,
                                                  @RequestHeader(value = "Authorization") String authorizationHeader,
                                                  @RequestBody Map<String, String> request) {
-        String token = authorizationHeader.replace("Bearer", "").trim();
-        Claims claims = jwtUtil.parseJwt(token);
-        int userId = ((Number) claims.get("userId")).intValue();
+
+        int userId = extractUserId(authorizationHeader);
 
         String newName = request.get("name");
 
