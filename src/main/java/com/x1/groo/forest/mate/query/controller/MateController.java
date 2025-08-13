@@ -20,7 +20,7 @@ import java.util.List;
 
 @Tag(name = "우정의 숲")
 @RestController
-@RequestMapping("/mate")
+@RequestMapping("/api/mate")
 @RequiredArgsConstructor
 public class MateController {
 

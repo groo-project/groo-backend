@@ -5,6 +5,7 @@ import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.dto.TokenDTO;
 import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
+import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import jakarta.validation.Valid;
@@ -30,4 +31,5 @@ public interface UserService extends UserDetailsService {
 
     UserDetails loadUserByUsername(String email);
 
+    LoginDTO login(LoginRequestVO loginRequestVO);
 }

@@ -55,9 +55,10 @@ public class SecurityConfig  {
                         .permitAll()
 
                         // 모두 접근 갸능
-                        .requestMatchers("/auth/**",
-                                "/mails/**",
-                                "/image/**")
+                        .requestMatchers("/api/auth/**",
+                                "/api/mails/**",
+                                "/api/image/**",
+                                "/error")
                         .permitAll()
 
                         // 로그인 필요

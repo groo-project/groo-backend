@@ -29,18 +29,18 @@ public class JwtUtil {
     private final Key key;
     private final long accessExpirationMs;
     private final long refreshExpirationMs;
-    private final UserService userService;
+//    private final UserService userService;
 
     @Autowired
     public JwtUtil(@Value("${token.secret}") String secretBase64,
                    @Value("${token.access_expiration_time}") long accessExpirationMs,
-                   UserService userService,
+//                   UserService userService,
                    @Value("${token.refresh_expiration_time}") long refreshExpirationMs) {
         byte[] keyBytes = Decoders.BASE64.decode(secretBase64);
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessExpirationMs = accessExpirationMs;
         this.refreshExpirationMs = refreshExpirationMs;
-        this.userService = userService;
+//        this.userService = userService;
     }
 
     public String generateAccessToken(CustomUserDetails userDetails) {
@@ -101,7 +101,9 @@ public class JwtUtil {
         Claims claims = parserClaims(accessToken);
 
         // 토큰에 들어있는 이메일로 DB에서 회원 조회하고 UserDetails로 가져옴
-        UserDetails userDetails = userService.loadUserByUsername(claims.getSubject());
+//        UserDetails userDetails = userService.loadUserByUsername(claims.getSubject());
+
+//        CustomUserDetails userDetails =
 
         // 토큰에 들어있는 권한들을 List<GrantedAuthority>
         Collection<GrantedAuthority> authorities = null;
@@ -118,7 +120,7 @@ public class JwtUtil {
         }
 
         int userId = claims.get("userId", Number.class).intValue();
-        String email = claims.getSubject(); // setSubject(getUsername()) 했었죠
+        String email = claims.getSubject();
         String nickname = claims.get("nickname", String.class);
 
 
@@ -128,7 +130,7 @@ public class JwtUtil {
                 .nickname(nickname)
                 .build();
 
-        CustomUserDetails principal = new CustomUserDetails(dto, authorities);
+        CustomUserDetails principal = new CustomUserDetails(dto);
         return new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
     }

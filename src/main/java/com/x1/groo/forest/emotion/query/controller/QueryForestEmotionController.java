@@ -24,7 +24,7 @@ import java.util.List;
 
 @Tag(name = "감정숲")
 @RestController
-@RequestMapping
+@RequestMapping("/api")
 @Slf4j
 public class QueryForestEmotionController {
 
@@ -58,7 +58,7 @@ public class QueryForestEmotionController {
         return ResponseEntity.ok(items);
     }
 
-    @Operation(summary = "감정의 숲에 작성된 방명록 리스트 조회")
+    @Operation(summary = "작성된 방명록 리스트 조회")
     @GetMapping("/mailbox-lists/{forestId}")
     public ResponseEntity<List<QueryForestEmotionMailboxListDTO>> getMailboxList(
             @AuthenticationPrincipal CustomUserDetails user,

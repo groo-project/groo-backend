@@ -1,25 +1,34 @@
 package com.x1.groo.user.service;
 
+import com.openai.errors.UnauthorizedException;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.exception.CustomException;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
 import com.x1.groo.security.CustomUserDetails;
+import com.x1.groo.security.util.JwtUtil;
+import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.aggregate.Role;
 import com.x1.groo.user.aggregate.UserEntity;
+import com.x1.groo.user.dto.LoginDTO;
+import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.repository.UserRepository;
 import com.x1.groo.user.vo.SignupRequestVO;
 import jakarta.validation.Valid;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -27,8 +36,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Builder
 @Slf4j
 public class UserServiceImpl implements UserService {
 
@@ -37,14 +48,17 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final RedisUtil redisUtil;
     private final CommandEmotionForestService forestService;
+    private final JwtUtil jwtUtil;
 
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
-                           ModelMapper modelMapper, RedisUtil redisUtil, CommandEmotionForestService forestService) {
+                           ModelMapper modelMapper, RedisUtil redisUtil, CommandEmotionForestService forestService,
+                           JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.modelMapper = modelMapper;
         this.redisUtil = redisUtil;
         this.forestService = forestService;
+        this.jwtUtil = jwtUtil;
     }
 
     // 기능 : 회원가입
@@ -119,6 +133,45 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok("인증 성공");
     }
 
+    @Transactional
+    @Override
+    public LoginDTO login(LoginRequestVO req) {
+
+        // 1) 사용자 조회
+        UserEntity loginUser = userRepository.findByEmail(req.getEmail())
+                .orElseThrow(() ->
+                        new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다."));
+
+        // 2) 비밀번호 검증
+        if (!bCryptPasswordEncoder.matches(req.getPassword(), loginUser.getPassword())) {
+            throw new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다.");
+        }
+
+        // 3) UserDTO로 변환 → CustomUserDetails 생성
+        UserDTO userDto = UserDTO.fromEntity(loginUser);   // ⚠️ fromEntity에서 id 타입 주의(아래 참고)
+        CustomUserDetails user = new CustomUserDetails(userDto);
+
+        // 4) 권한 문자열 목록 뽑기 ("ROLE_USER" 형태)
+        List<String> roles = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
+
+
+        // 4) AT 발급 (짧은 만료, 예: 15분)
+        String accessToken = jwtUtil.generateAccessToken(user);
+
+        // 5) RT 발급 & 저장(회전) (긴 만료, 예: 14일)
+//        String refreshToken = refreshTokenService.issue(user.getId()); // 내부에서 DB/Redis 저장
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        // 6) 컨트롤러에서 쿠키로 내려줄 수 있게 RT도 함께 반환 (컨트롤러에서 쿠키 세팅 후 바디에선 제거)
+        return LoginDTO.builder()
+                .accessToken(accessToken)
+                .roles(roles)
+                .refreshToken(refreshToken)
+                .user(new LoginUserDTO(user.getUserId(), user.getName()))
+                .build();
+    }
 
     /* 설명. spring security 사용 시 프로바이더에서 활요할 로그인용 메소드(id로 회원 조회해서 UserDetails 타입을 반환하는 메소드) */
     @Override
@@ -126,9 +179,6 @@ public class UserServiceImpl implements UserService {
 
         UserEntity loginUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(email + " 해당 유저를 찾을 수 없습니다."));  // email 필드로 where절을 걸어서 조회하는 쿼리 메소드
-
-        List<GrantedAuthority> auths =
-                List.of(new SimpleGrantedAuthority("ROLE_" + loginUser.getRole().name()));
 
         // DTO → CustomUserDetails
         UserDTO dto = UserDTO.builder()
@@ -138,7 +188,7 @@ public class UserServiceImpl implements UserService {
                 .nickname(loginUser.getNickname())
                 .build();
 
-        return new CustomUserDetails(dto, auths);
+        return new CustomUserDetails(dto);
     }
 
 

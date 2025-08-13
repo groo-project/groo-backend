@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Tag(name = "우정의 숲", description = "우정의 숲 관련 기능을 제공합니다.")
 @RestController
-@RequestMapping("/mate")
+@RequestMapping("/api/mate")
 @Slf4j
 public class CommandMateController {
 
