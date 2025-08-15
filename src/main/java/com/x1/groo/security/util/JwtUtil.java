@@ -1,21 +1,15 @@
 package com.x1.groo.security.util;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.vo.LoginRequestVO;
-import com.x1.groo.security.vo.LoginResponseVO;
-import com.x1.groo.user.aggregate.Role;
-import com.x1.groo.user.aggregate.UserEntity;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,8 +39,8 @@ public class JwtUtil {
                    @Value("${token.expiration_time}") long expirationMillis,
                    UserService userService,
                    ModelMapper modelMapper) {
-        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secretBase64);
-        this.key = io.jsonwebtoken.security.Keys.hmacShaKeyFor(keyBytes);
+        byte[] keyBytes = Decoders.BASE64.decode(secretBase64);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMillis = expirationMillis;
         this.userService = userService;
         this.modelMapper = modelMapper;

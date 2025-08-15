@@ -73,16 +73,16 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json;charset=UTF-8");
 
-//        CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
-//        String accessToken = jwtUtil.generateAccessToken(userDetails);
+        CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
+        String accessToken = jwtUtil.generateAccessToken(userDetails);
 
-//        var body = new java.util.HashMap<String, Object>();
-//        body.put("accessToken", accessToken);
-//        // 필요하면 닉네임도 추가
-//        // body.put("userNickname", userNickname);
-//
-//        response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
-//        response.getWriter().flush();
+        var body = new java.util.HashMap<String, Object>();
+        body.put("accessToken", accessToken);
+        // 필요하면 닉네임도 추가
+        // body.put("userNickname", userNickname);
+
+        response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
+        response.getWriter().flush();
 
 
 

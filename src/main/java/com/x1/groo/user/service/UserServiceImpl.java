@@ -6,8 +6,6 @@ import com.x1.groo.email.exception.CustomException;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.dto.TokenDTO;
-import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.aggregate.Role;
 import com.x1.groo.user.aggregate.UserEntity;
@@ -121,11 +119,6 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity.ok("인증 성공");
     }
 
-    // login 할때 자동 호출될 메소드
-//    @Override
-//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        return null;
-//    }
 
     /* 설명. spring security 사용 시 프로바이더에서 활요할 로그인용 메소드(id로 회원 조회해서 UserDetails 타입을 반환하는 메소드) */
     @Override
@@ -134,18 +127,14 @@ public class UserServiceImpl implements UserService {
         UserEntity loginUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(email + " 해당 유저를 찾을 수 없습니다."));  // email 필드로 where절을 걸어서 조회하는 쿼리 메소드
 
-//        if(loginUser == null) {
-//            throw new UsernameNotFoundException(email + " 이메일 아이디의 유저는 존재하지 않습니다.");
-//        }
-
         List<GrantedAuthority> auths =
                 List.of(new SimpleGrantedAuthority("ROLE_" + loginUser.getRole().name()));
 
         // DTO → CustomUserDetails
-//        UserDTO dto = UserDTO.of(loginUser);
         UserDTO dto = UserDTO.builder()
                 .id(loginUser.getId())
                 .email(loginUser.getEmail())
+                .password(loginUser.getPassword())
                 .nickname(loginUser.getNickname())
                 .build();
 
