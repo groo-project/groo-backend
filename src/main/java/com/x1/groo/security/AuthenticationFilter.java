@@ -58,9 +58,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-//        SecurityContext에 auth를 넣어주는 기본 로직
-//        super.successfulAuthentication(request, response, chain, authResult);
-
 
         // 토큰의 payload에 id, 가진 권한들, 만료시간)
         String email = authResult.getName();
@@ -74,12 +71,18 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         response.setContentType("application/json;charset=UTF-8");
 
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
+
+        // access
         String accessToken = jwtUtil.generateAccessToken(userDetails);
+
+        response.addHeader("Authorization", "Bearer " + accessToken);
+
+
+        // refresh
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
         var body = new java.util.HashMap<String, Object>();
         body.put("accessToken", accessToken);
-        // 필요하면 닉네임도 추가
-        // body.put("userNickname", userNickname);
 
         response.getWriter().write(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(body));
         response.getWriter().flush();
@@ -91,7 +94,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
         String token = Jwts.builder()
                 .setClaims(claims)  // 등록된 클레임(subject) + 비공개 클레임(auth)
-                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(env.getProperty("token.expiration_time"))))
+                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(env.getProperty("token.access_expiration_time"))))
                 .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret"))
                 .compact();
     }

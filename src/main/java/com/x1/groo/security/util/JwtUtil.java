@@ -19,10 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -30,20 +27,20 @@ import java.util.stream.Collectors;
 public class JwtUtil {
 
     private final Key key;
-    private final long expirationMillis;
+    private final long accessExpirationMs;
+    private final long refreshExpirationMs;
     private final UserService userService;
-    private final ModelMapper modelMapper;
 
     @Autowired
     public JwtUtil(@Value("${token.secret}") String secretBase64,
-                   @Value("${token.expiration_time}") long expirationMillis,
+                   @Value("${token.access_expiration_time}") long accessExpirationMs,
                    UserService userService,
-                   ModelMapper modelMapper) {
+                   @Value("${token.refresh_expiration_time}") long refreshExpirationMs) {
         byte[] keyBytes = Decoders.BASE64.decode(secretBase64);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.expirationMillis = expirationMillis;
+        this.accessExpirationMs = accessExpirationMs;
+        this.refreshExpirationMs = refreshExpirationMs;
         this.userService = userService;
-        this.modelMapper = modelMapper;
     }
 
     public String generateAccessToken(CustomUserDetails userDetails) {
@@ -58,15 +55,28 @@ public class JwtUtil {
                 .setSubject(userDetails.getUsername())
                 .claim("userId", userDetails.getUserId())
                 .claim("auth", roles)
-                .claim("nickname", userDetails.getName())
+                .claim("tokenType", "access")
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + expirationMillis))
+                .setExpiration(new Date(now.getTime() + accessExpirationMs))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generateRefreshToken(CustomUserDetails userDetails) {
+        long now = System.currentTimeMillis();
+
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setId(UUID.randomUUID().toString())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + refreshExpirationMs))
+                .claim("tokenType", "refresh")
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     // token 검증 (우리가 사이트의 secret key로 만들어 졌는지, 내용이 비어져 있지 않은지)
-    public boolean validationToken(String accessToken) {
+    public boolean validationAccessToken(String accessToken) {
 
         if (!StringUtils.hasText(accessToken)) { // Authorization 헤더에 토큰이 없거나 공백
             return false;
@@ -127,4 +137,6 @@ public class JwtUtil {
     private Claims parserClaims(String accessToken) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
     }
+
+
 }

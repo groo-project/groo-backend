@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = resolveAcessToken(request);
 
 
-        if(jwtUtil.validationToken(accessToken)) {
+        if(jwtUtil.validationAccessToken(accessToken)) {
 
             // 유효한 토큰을 통해 아이디와 권한들을 가진 Authentication 추출 (Spring Security가 인식할 수 있게 반환)
             Authentication authentication = jwtUtil.getAuthentication(accessToken);
