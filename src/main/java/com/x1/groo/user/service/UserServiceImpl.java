@@ -1,6 +1,8 @@
 package com.x1.groo.user.service;
 
-import com.openai.errors.UnauthorizedException;
+import com.x1.groo.auth.command.application.aggregate.RefreshToken;
+import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
+import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.exception.CustomException;
@@ -17,6 +19,8 @@ import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.repository.UserRepository;
 import com.x1.groo.user.vo.SignupRequestVO;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import jakarta.validation.Valid;
 
 import java.util.Collection;
@@ -49,16 +53,19 @@ public class UserServiceImpl implements UserService {
     private final RedisUtil redisUtil;
     private final CommandEmotionForestService forestService;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            ModelMapper modelMapper, RedisUtil redisUtil, CommandEmotionForestService forestService,
-                           JwtUtil jwtUtil) {
+                           JwtUtil jwtUtil,
+                           RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.modelMapper = modelMapper;
         this.redisUtil = redisUtil;
         this.forestService = forestService;
         this.jwtUtil = jwtUtil;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     // 기능 : 회원가입
@@ -147,6 +154,7 @@ public class UserServiceImpl implements UserService {
             throw new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
+
         // 3) UserDTO로 변환 → CustomUserDetails 생성
         UserDTO userDto = UserDTO.fromEntity(loginUser);   // ⚠️ fromEntity에서 id 타입 주의(아래 참고)
         CustomUserDetails user = new CustomUserDetails(userDto);
@@ -158,18 +166,29 @@ public class UserServiceImpl implements UserService {
 
 
         // 4) AT 발급 (짧은 만료, 예: 15분)
-        String accessToken = jwtUtil.generateAccessToken(user);
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
 
         // 5) RT 발급 & 저장(회전) (긴 만료, 예: 14일)
 //        String refreshToken = refreshTokenService.issue(user.getId()); // 내부에서 DB/Redis 저장
-        String refreshToken = jwtUtil.generateRefreshToken(user);
+        String newRt = jwtUtil.generateRefreshToken(user.getUserId());
+
+        Jws<Claims> jws = jwtUtil.parserClaimsJws(newRt);
+        int userId = jwtUtil.getUserId(jws);
+        String newJti = jws.getBody().getId();
+
+        RefreshToken next = new RefreshToken();
+        next.setUserId(userId);
+        next.setJtiHash(HashUtil.sha256(newJti));
+        next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
+        refreshTokenRepository.deleteAllByUserId(userId);
+        refreshTokenRepository.save(next);
 
         // 6) 컨트롤러에서 쿠키로 내려줄 수 있게 RT도 함께 반환 (컨트롤러에서 쿠키 세팅 후 바디에선 제거)
         return LoginDTO.builder()
                 .accessToken(accessToken)
                 .roles(roles)
-                .refreshToken(refreshToken)
-                .user(new LoginUserDTO(user.getUserId(), user.getName()))
+                .refreshToken(newRt)
+                .user(new LoginUserDTO(user.getUserId(), user.getName(), user.getForestId()))
                 .build();
     }
 

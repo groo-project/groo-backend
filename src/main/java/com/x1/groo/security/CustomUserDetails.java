@@ -1,14 +1,13 @@
 package com.x1.groo.security;
 
-import com.x1.groo.user.aggregate.UserEntity;
 import com.x1.groo.user.dto.UserDTO;
+import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-
 
 public class CustomUserDetails implements UserDetails {
 
@@ -17,6 +16,19 @@ public class CustomUserDetails implements UserDetails {
     public CustomUserDetails(UserDTO user) {
         this.user = user;
     }
+
+    // 🔧 추가: DTO -> UserDetails 변환 헬퍼
+//    public static CustomUserDetails from(UserDTO dto) {
+//        return CustomUserDetails.builder()
+//                .user(dto)   // ✅ 빌더에는 user(...)만 존재
+//                .build();
+//    }
+
+    // DTO -> UserDetails 헬퍼
+    public static CustomUserDetails from(UserDTO dto) {
+        return new CustomUserDetails(dto); // ✅ 빌더 사용 안 함
+    }
+
 
     @Override
     public String getUsername() {
@@ -42,6 +54,10 @@ public class CustomUserDetails implements UserDetails {
 
     public String getName() {
         return user.getNickname();
+    }
+
+    public int getForestId() {
+        return user.getForestId();
     }
 
     @Override

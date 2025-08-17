@@ -62,6 +62,25 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         // 토큰의 payload에 id, 가진 권한들, 만료시간)
         String email = authResult.getName();
 
+        CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
+        int userId = principal.getUserId();
+//        // principal 꺼내기
+//        Object principalObj = authResult.getPrincipal();
+//
+//        if (principalObj instanceof CustomUserDetails) {
+//            CustomUserDetails principal = (CustomUserDetails) principalObj;
+//            int userId = principal.getUserId();          // ✅ 여기서 userId 얻음
+//        } else if (principalObj instanceof org.springframework.security.core.userdetails.UserDetails) {
+//            // 커스텀이 아닌 기본 UserDetails라면 id가 없으니, username(=email)로 DB 조회해서 id 얻기
+//            org.springframework.security.core.userdetails.UserDetails principal =
+//                    (org.springframework.security.core.userdetails.UserDetails) principalObj;
+//            int userId = userService.findIdByEmail(email);   // 너의 서비스 메서드 이름에 맞춰서
+//        } else if (principalObj instanceof String) {
+//            // 드물게 principal이 String(username)일 수 있음
+//            String username = (String) principalObj;
+//            int userId = userService.findIdByEmail(username);
+//        }
+
         List<String> roles = authResult.getAuthorities().stream()
 //                .map(role -> role.getAuthority())
                 .map(GrantedAuthority::getAuthority)
@@ -73,13 +92,13 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
 
         // access
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
+        String accessToken = jwtUtil.generateAccessToken(userId, email, roles);
 
         response.addHeader("Authorization", "Bearer " + accessToken);
 
 
         // refresh
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails.getUserId());
 
         var body = new java.util.HashMap<String, Object>();
         body.put("accessToken", accessToken);
