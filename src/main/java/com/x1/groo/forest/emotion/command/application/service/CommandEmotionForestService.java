@@ -1,18 +1,17 @@
 package com.x1.groo.forest.emotion.command.application.service;
 
-import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestMailboxVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestPlacementVO;
-import com.x1.groo.forest.emotion.command.domain.vo.RequestReplacementVO;
+import com.x1.groo.forest.emotion.command.domain.vo.*;
+
+import java.util.List;
 
 public interface CommandEmotionForestService {
-    void retrieveItemById(int userId, int placementId);
+    void retrieveItemsByIds(int userId, List<Integer> placementIds);
 
     void retrieveAllItems(int userId, int forestId);
 
     void placeItem(int userId, RequestPlacementVO requestPlacementVO);
 
-    void replaceItem(int userId, RequestReplacementVO requestReplacementVO);
+    void replaceItem(int userId, List<RequestReplacementVO> replacementVOList);
 
     void createMailbox(int userId, RequestMailboxVO requestMailboxVO);
 
@@ -23,4 +22,6 @@ public interface CommandEmotionForestService {
     void createEmotionForest(int userId, RequestCreateVO request);
 
     void updateForestName(int forestId, int userId, String newName);
+
+    void placeStoredItem(int userId, RequestReplantVO requestReplantVO);
 }

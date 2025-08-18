@@ -9,20 +9,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class RequestReplacementVO {
+public class RequestReplantVO {
+
+    private Integer userItemId; // user_item id값
+
     private BigDecimal itemPositionX;
     private BigDecimal itemPositionY;
     private BigDecimal itemWidth;
     private BigDecimal itemHeight;
     private Integer itemZIndex;
-    private int placementId;
-
-    public boolean isValid() {
-        return itemPositionX != null &&
-                itemPositionY != null &&
-                itemWidth != null &&
-                itemHeight != null &&
-                itemZIndex != null &&
-                placementId > 0;
-    }
 }
