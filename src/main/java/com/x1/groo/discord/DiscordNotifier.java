@@ -1,6 +1,9 @@
 package com.x1.groo.discord;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.x1.groo.discord.dto.DiscordEmbedDTO;
+import com.x1.groo.discord.dto.DiscordPayloadDTO;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -9,15 +12,15 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DiscordNotifier {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${discord.webhook-url}")
     private String webhookUrl;
@@ -30,20 +33,15 @@ public class DiscordNotifier {
      */
     public void sendError(String title, String message) {
         try {
-            // JSON 안전 처리: 큰따옴표 escape
-            String safeMessage = message.replace("\"", "\\\"");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             // embed 객체 생성
-            Map<String, Object> embed = new HashMap<>();
-            embed.put("title", title);
-            embed.put("description", message); // \n 포함 가능
-            embed.put("color", 16711680);
+            DiscordEmbedDTO embed = new DiscordEmbedDTO(title, message, 16711680);
 
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("embeds", new Map[]{embed});
+            // payload 객체 생성
+            DiscordPayloadDTO payload = new DiscordPayloadDTO(new DiscordEmbedDTO[]{embed});
 
             // 안전하게 JSON 문자열로 변환
             String jsonPayload = objectMapper.writeValueAsString(payload);
