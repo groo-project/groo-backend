@@ -1,6 +1,5 @@
 package com.x1.groo.discord;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.x1.groo.discord.dto.DiscordEmbedDTO;
 import com.x1.groo.discord.dto.DiscordPayloadDTO;
 import lombok.RequiredArgsConstructor;
@@ -12,15 +11,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DiscordNotifier {
 
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
     @Value("${discord.webhook-url}")
     private String webhookUrl;
@@ -43,10 +39,7 @@ public class DiscordNotifier {
             // payload 객체 생성
             DiscordPayloadDTO payload = new DiscordPayloadDTO(new DiscordEmbedDTO[]{embed});
 
-            // 안전하게 JSON 문자열로 변환
-            String jsonPayload = objectMapper.writeValueAsString(payload);
-
-            HttpEntity<String> entity = new HttpEntity<>(jsonPayload, headers);
+            HttpEntity<DiscordPayloadDTO> entity = new HttpEntity<>(payload, headers);
             restTemplate.postForEntity(webhookUrl, entity, String.class);
         } catch (Exception e) {
             log.error("❌ Discord 전송 실패", e);

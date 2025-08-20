@@ -16,13 +16,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
 
         ErrorCode errorCode = ex.getErrorCode();
+        String cause = ex.getCause() != null ? ex.getCause().toString() : "";
 
         if (ex.getCause() != null) {
             discordNotifier.sendError(
                     "Custom Exception",
                     "에러 코드: " + errorCode.getCode() +
                             "\n메시지: " + errorCode.getMessage() +
-                            "\ncause: " + ex.getCause()
+                            "\ncause: " + cause
             );
         }
 
