@@ -1,5 +1,7 @@
 package com.x1.groo.forest.emotion.query.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
@@ -26,7 +28,7 @@ public class QueryForestEmotionServiceImpl implements QueryForestEmotionService 
         int forestOwnerId = queryForestEmotionMapper.findUserIdByForestId(forestId);
 
         if (forestOwnerId != userId) {
-            throw new AccessDeniedException("해당 유저는 forest에 접근할 수 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         return queryForestEmotionMapper.findPieceOfMemory(userId, categoryId, forestId);
@@ -52,7 +54,7 @@ public class QueryForestEmotionServiceImpl implements QueryForestEmotionService 
         boolean isShared = queryForestEmotionMapper.existsUserInForest(userId, forestId);
 
         if (!(isOwner || isShared)) {
-            throw new AccessDeniedException("해당 숲에 대한 접근 권한이 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         // 날짜 범위 생성
@@ -70,7 +72,7 @@ public class QueryForestEmotionServiceImpl implements QueryForestEmotionService 
         boolean isShared = queryForestEmotionMapper.existsUserInForest(userId, forestId);
 
         if (!(isOwner || isShared)) {
-            throw new AccessDeniedException("해당 숲에 대한 접근 권한이 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         LocalDateTime startDateTime = LocalDate.of(year, month, 1).atStartOfDay();

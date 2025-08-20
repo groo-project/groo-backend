@@ -1,5 +1,7 @@
 package com.x1.groo.forest.emotion.command.application.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -43,15 +45,15 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
 
         for (Integer placementId : placementIds) {
             PlacementEntity placement = placementRepository.findById(placementId)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + placementId));
+                    .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
 
             // userId 검증
             if (placement.getUser().getId() != userId) {
-                throw new SecurityException("해당 배치에 접근 권한이 없습니다. id=" + placementId);
+                throw new CustomException(ErrorCode.PLACEMENT_ACCESS_DENIED);
             }
 
             UserItemEntity userItem = userItemRepository.findById(placement.getUserItem().getId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 유저 아이템이 존재하지 않습니다. id=" + placement.getUserItem().getId()));
+                    .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
 
             // 배치 개수 감소
             userItem.decreasePlacedCount();
@@ -109,9 +111,9 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         } else {
             // 2-2. 없다면 새로 생성
             UserEntity user = userRepository.findById(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("사용자가 유효하지 않습니다"));
+                    .orElseThrow(() -> new CustomException(ErrorCode.FOREST_ACCESS_DENIED));
             ForestEntity forest = forestRepository.findById(forestId)
-                    .orElseThrow(() -> new EntityNotFoundException("숲이 유효하지 않습니다"));
+                    .orElseThrow(() -> new CustomException(ErrorCode.FOREST_NOT_FOUND));
 
             userItem = new UserItemEntity();
             userItem.setUser(user);
@@ -141,21 +143,21 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Override
     public void replaceItem(int userId, List<RequestReplacementVO> replacementVOList) {
         if (replacementVOList == null || replacementVOList.isEmpty()) {
-            throw new IllegalArgumentException("재배치할 아이템 정보가 없습니다.");
+            throw new CustomException(ErrorCode.PLACEMENT_NOT_FOUND);
         }
 
         for (RequestReplacementVO vo : replacementVOList) {
             if (!vo.isValid()) {
-                throw new IllegalArgumentException("Invalid replacement request: " + vo.getPlacementId());
+                throw new CustomException(ErrorCode.PLACEMENT_NOT_FOUND);
             }
 
             // 1. placementId로 PlacementEntity 조회
             PlacementEntity placement = placementRepository.findById(vo.getPlacementId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 배치가 존재하지 않습니다. id=" + vo.getPlacementId()));
+                    .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
 
             // 2. 소유자 검증
             if (placement.getUser() == null || placement.getUser().getId() != userId) {
-                throw new SecurityException("본인의 배치만 수정할 수 있습니다. id=" + vo.getPlacementId());
+                throw new CustomException(ErrorCode.PLACEMENT_ACCESS_DENIED);
             }
 
             // 3. 위치/크기/Z-Index 변경
@@ -174,11 +176,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     public void placeStoredItem(int userId, RequestReplantVO requestReplantVO) {
         // 1. userItemId로 UserItemEntity 조회
         UserItemEntity userItem = userItemRepository.findById(requestReplantVO.getUserItemId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 아이템 보유 정보가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
 
         // 2. 소유자 검증
         if (userItem.getUser() == null || !Objects.equals(userItem.getUser().getId(), userId)) {
-            throw new SecurityException("사용자 정보가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.PLACEMENT_ACCESS_DENIED);
         }
 
         // 3. placement 생성
@@ -216,7 +218,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     public void deleteMailbox(int userId, int mailboxId, int forestId) {
         boolean isOwner = forestRepository.existsByIdAndUserId(forestId, userId);
         if (!isOwner) {
-            throw new IllegalArgumentException("본인의 숲에만 방명록을 삭제할 수 있습니다.");
+            throw new CustomException(ErrorCode.MAILBOX_ACCESS_DENIED);
         }
 
         mailboxRepository.softDeleteById(mailboxId);
@@ -226,11 +228,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Override
     public void updateForestPublic(int forestId, int userId) {
         ForestEntity forest = forestRepository.findById(forestId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 숲입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_NOT_FOUND));
 
         // 여기서 꼭 본인 확인
         if (forest.getUser().getId() != userId) {
-            throw new AccessDeniedException("본인 소유의 숲만 수정할 수 있습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         // 숲의 공개 여부 토글 (true -> false, false -> true)
@@ -246,10 +248,10 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Transactional
     public void createEmotionForest(int userId, RequestCreateVO request) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_ACCESS_DENIED));
 
         BackgroundEntity background = backgroundRepository.findById(1)
-                .orElseThrow(() -> new IllegalArgumentException("기본 배경을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.BACKGROUND_NOT_FOUND));
 
         ForestEntity forest = new ForestEntity();
         forest.setName(request.getForestName());
@@ -266,14 +268,14 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Override
     public void updateForestName(int forestId, int userId, String newName) {
         ForestEntity forest = forestRepository.findById(forestId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 숲입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_NOT_FOUND));
 
         // 공유된 숲 참여 여부 확인
         boolean isMember = forest.getUser().getId() == userId ||
                 forestRepository.isUserInSharedForest(userId, forestId);
 
         if (!isMember) {
-            throw new AccessDeniedException("해당 숲에 대한 수정 권한이 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         forest.setName(newName);
