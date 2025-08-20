@@ -1,6 +1,5 @@
 package com.x1.groo.s3.service;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service

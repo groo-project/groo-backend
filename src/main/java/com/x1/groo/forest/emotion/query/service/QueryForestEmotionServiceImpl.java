@@ -10,7 +10,6 @@ import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO;
 import com.x1.groo.forest.emotion.query.dto.*;
 import com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

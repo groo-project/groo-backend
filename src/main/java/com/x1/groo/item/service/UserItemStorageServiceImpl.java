@@ -7,7 +7,6 @@ import com.x1.groo.forest.emotion.command.domain.repository.EmotionSharedForestR
 import com.x1.groo.item.domain.storage.aggregate.UserItemStorageEntity;
 import com.x1.groo.item.domain.storage.repository.UserItemStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service

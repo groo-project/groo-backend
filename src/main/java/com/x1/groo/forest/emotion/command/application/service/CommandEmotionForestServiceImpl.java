@@ -11,10 +11,8 @@ import com.x1.groo.forest.common.domain.repository.UserRepository;
 import com.x1.groo.forest.emotion.command.domain.aggregate.*;
 import com.x1.groo.forest.emotion.command.domain.repository.*;
 import com.x1.groo.forest.emotion.command.domain.vo.*;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

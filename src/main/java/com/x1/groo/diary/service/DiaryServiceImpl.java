@@ -16,7 +16,6 @@ import com.x1.groo.item.dto.CategoryEmotionItemDTO;
 import com.x1.groo.item.service.ItemService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

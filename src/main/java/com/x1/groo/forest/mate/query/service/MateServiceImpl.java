@@ -7,10 +7,8 @@ import com.x1.groo.forest.mate.query.dto.DiaryByDateDTO;
 import com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
