@@ -1,14 +1,14 @@
 package com.x1.groo.forest.mate.query.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.mate.query.dao.MateMapper;
 import com.x1.groo.forest.mate.query.dto.DiaryByDateDTO;
 import com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,7 +27,7 @@ public class MateServiceImpl implements MateService {
 
         // userId가 forestId에 속하는지 확인
         if (!mateMapper.existsUserInForest(userId, forestId)) {
-            throw new AccessDeniedException("해당 숲에 대한 접근 권한이 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         // 날짜 범위 생성
@@ -41,7 +41,7 @@ public class MateServiceImpl implements MateService {
     @Override
     public List<DiaryByMonthDTO> findDiariesByMonth(int userId, int forestId, int year, int month) {
         if (!mateMapper.existsUserInForest(userId, forestId)) {
-            throw new AccessDeniedException("해당 숲에 대한 접근 권한이 없습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         LocalDateTime startDateTime = LocalDate.of(year, month, 1).atStartOfDay();
@@ -63,7 +63,7 @@ public class MateServiceImpl implements MateService {
 
         if (forestDetails == null) {
             log.error("Forest with id {} not found", forestId);
-            throw new EntityNotFoundException("해당 숲을 찾을 수 없습니다: id = " + forestId);
+            throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
         }
 
 
