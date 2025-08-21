@@ -22,6 +22,7 @@ public class CorsConfig {
 
         // todo : 쿠키 기반을 쓰면 CORS 설정에서 credentials: true 허용 필요.
         //  예: Spring Security → config.setAllowCredentials(true)
+        config.setAllowCredentials(true);
 
         // 쿠키 발급 예시 (Set-Cookie)
 //        ResponseCookie cookie = ResponseCookie.from("refreshToken", rt)

@@ -62,29 +62,19 @@ public class UserController {
     public ResponseEntity<LoginDTO> login(@RequestBody LoginRequestVO loginRequestVO,
                                           HttpServletResponse res) {
 
-        // 1) 서비스가 LoginDTO를 반환한다고 가정
         LoginDTO login = userService.login(loginRequestVO);
 
-        // 2) LoginDTO 안에서 UserDTO를 꺼냄
         LoginUserDTO user = login.getUser();
 
-        // 3) UserDTO → CustomUserDetails 로 감싼 뒤 AT/RT 생성
-//        CustomUserDetails principal = new CustomUserDetails(user);
-        // 토큰 발급
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getEmail(),login.getRoles());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
 
-        // RefreshToken은 쿠키로 내려줌
         CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
 
         List<String> roles = login.getRoles();
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
 
-        // AccessToken은 응답 JSON 으로 내려줌
         LoginDTO response = LoginDTO.builder()
                 .user(user)
-                .refreshToken(refreshToken)
                 .accessToken(accessToken)
                 .roles(roles)
                 .build();

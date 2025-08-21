@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 public class RefreshDTO {
-    private String refreshToken;
+    private final String refreshToken;
 
     public RefreshDTO(String refreshToken) {
         this.refreshToken = refreshToken;

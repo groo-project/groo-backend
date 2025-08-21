@@ -26,15 +26,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private Environment env;
-    private JwtUtil jwtUtil;
+    private final Environment env;
+    private final JwtUtil jwtUtil;
 
     public AuthenticationFilter(AuthenticationManager authenticationManager, Environment env, JwtUtil jwtUtil) {
         super(authenticationManager);
         this.env = env;
         this.jwtUtil = jwtUtil;
-//        setFilterProcessesUrl("/auth/login");
-
     }
 
     @Override

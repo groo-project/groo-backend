@@ -1,26 +1,44 @@
 package com.x1.groo.auth.command.util;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.time.Duration;
+import java.util.Map;
 
 public class CookieUtil {
+
+    private static final boolean PROD = false; // 운영이면 true
+
     public static void setRefreshCookie(HttpServletResponse res, String token, Duration maxAge) {
+
         ResponseCookie cookie = ResponseCookie.from("refreshToken", token)
                 .httpOnly(true)
-                .secure(false)        // 로컬 개발에서 http라면 필요 시 false로 낮춰 테스트
-                .sameSite("None")    // 5173→8080 크로스사이트에서 필수
-                .path("/api")        // /api/auth/*에 모두 전송됨
+                .path("/")
+                .domain("localhost")
                 .maxAge(maxAge)
+                .sameSite(PROD ? "None" : "Lax")
+                .secure(PROD)
                 .build();
+
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     public static void clearRefreshCookie(HttpServletResponse res) {
+
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true).secure(true).sameSite("None").path("/api").maxAge(0).build();
+                .httpOnly(true)
+                .path("/")
+                .domain("localhost")
+                .maxAge(0)
+                .sameSite(PROD ? "None" : "Lax")
+                .secure(PROD)
+                .build();
+
         res.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

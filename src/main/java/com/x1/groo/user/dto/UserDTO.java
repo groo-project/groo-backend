@@ -4,10 +4,11 @@ import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.aggregate.Role;
 import com.x1.groo.user.aggregate.UserEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // 또는 public
+@AllArgsConstructor
 @Builder
 @Setter
 @Getter

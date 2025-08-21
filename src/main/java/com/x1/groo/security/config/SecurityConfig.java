@@ -58,7 +58,8 @@ public class SecurityConfig  {
                         .requestMatchers("/api/auth/**",
                                 "/api/mails/**",
                                 "/api/image/**",
-                                "/error")
+                                "/error",
+                                "/api/auth/refresh")
                         .permitAll()
 
                         // 로그인 필요

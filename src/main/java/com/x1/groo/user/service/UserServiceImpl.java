@@ -23,6 +23,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.validation.Valid;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -169,7 +170,6 @@ public class UserServiceImpl implements UserService {
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
 
         // 5) RT 발급 & 저장(회전) (긴 만료, 예: 14일)
-//        String refreshToken = refreshTokenService.issue(user.getId()); // 내부에서 DB/Redis 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());
 
         Jws<Claims> jws = jwtUtil.parserClaimsJws(newRt);
@@ -181,9 +181,7 @@ public class UserServiceImpl implements UserService {
         next.setJtiHash(HashUtil.sha256(newJti));
         next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
         refreshTokenRepository.deleteAllByUserId(userId);
-        refreshTokenRepository.save(next);
 
-        // 6) 컨트롤러에서 쿠키로 내려줄 수 있게 RT도 함께 반환 (컨트롤러에서 쿠키 세팅 후 바디에선 제거)
         return LoginDTO.builder()
                 .accessToken(accessToken)
                 .roles(roles)

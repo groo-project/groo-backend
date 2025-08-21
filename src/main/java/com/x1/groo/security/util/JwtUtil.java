@@ -57,7 +57,7 @@ public class JwtUtil {
                 .setSubject(String.valueOf(userId))
                 .claim("email", email)
                 .claim("auth", roles)
-                .claim("tokenType", "AT")
+                .claim("typ", "AT")
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + accessExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -72,18 +72,9 @@ public class JwtUtil {
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + refreshExpirationMs))
-                .claim("tokenType", "RT")
+                .claim("typ", "RT")
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
-
-//        Jws<Claims> newRtJws = parserClaimsJws(newRt);
-//        String newJti = newRtJws.getBody().getId();
-//
-//        RefreshToken next = new RefreshToken();
-//        next.setUserId(userId);
-//        next.setJtiHash(HashUtil.sha256(newJti));
-//        next.setExpiresAt(java.time.LocalDateTime.now().plus(getRefreshTtl()));
-//        refreshTokenRepository.save(next);
 
         return newRt;
 
@@ -129,7 +120,6 @@ public class JwtUtil {
                             .map(role -> new SimpleGrantedAuthority(role))
                             .collect(Collectors.toList());
         }
-//        int userId = claims.get("userId", Number.class).intValue();
         int userId = Integer.parseInt(claims.getSubject());
 
 
@@ -155,7 +145,6 @@ public class JwtUtil {
 
     public int getUserId(Jws<Claims> jws) {
         String n = jws.getBody().getSubject();
-//        return n == null ? null : n.intValue();
         return n == null ? null : Integer.parseInt(n);
     }
     public Duration getRefreshTtl() {

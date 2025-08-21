@@ -10,15 +10,20 @@ import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.sql.Ref;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AuthCommandServiceImpl implements AuthCommandService{
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -39,7 +44,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     )
     @Override
     public RefreshResult refresh(String rt) {
-        // 1) RT 파싱/검증
+
         Jws<Claims> jws = jwtUtil.parserClaimsJws(rt);
         String typ = jws.getBody().get("typ", String.class);
         if (!"RT".equals(typ)) {
@@ -47,20 +52,26 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         }
 
         int userId = jwtUtil.getUserId(jws);
-        String subjectEmail = jws.getBody().getSubject();
         String jti = jws.getBody().getId();
 
-        // 2) DB 에서 현재 RT(jti_hash) 찾기
-        java.util.Optional<RefreshToken> opt = refreshTokenRepository.findByJtiHash((HashUtil.sha256(jti)));
+        int subjectUserId = Integer.parseInt(jws.getBody().getSubject());
+        if (subjectUserId != userId) {
+            throw new BadCredentialsException("User ID mismatch in JWT subject");
+        }
+
+        java.util.Optional<RefreshToken> opt = refreshTokenRepository.findByUserId(subjectUserId);
+
         if (opt.isEmpty()) {
+            log.error("RT_NOT_FOUND_OR_REUSED: JTI hash {} not found in database", HashUtil.sha256(jti));
             throw new BadCredentialsException("RT_NOT_FOUND_OR_REUSED");
         }
+
+
         RefreshToken current = opt.get();
         if (current.isRevoked() || current.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
             throw new BadCredentialsException("RT_EXPIRED_OR_REVOKED");
         }
-
-        // 3) 회전: 기존 RT 삭제 → 새 RT 발급/저장
+        // 회전: 기존 RT 삭제 → 새 RT 발급/저장
         refreshTokenRepository.delete(current);
 
         String newRt = jwtUtil.generateRefreshToken(userId);
@@ -73,15 +84,13 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
         refreshTokenRepository.save(next);
 
-        // 4) 새 AT 발급
         UserDTO userDTO = userService.getUserById(String.valueOf(userId));
         CustomUserDetails user = new CustomUserDetails(userDTO);
 
         List<String> roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
-        // dto -> userDetails
-//        CustomUserDetails user = users.toUserDetails(users);
+                .collect(Collectors.toList());
+
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
         return new RefreshResult(accessToken, newRt, jwtUtil.getRefreshTtl());
     }
