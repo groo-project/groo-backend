@@ -181,6 +181,7 @@ public class UserServiceImpl implements UserService {
         next.setJtiHash(HashUtil.sha256(newJti));
         next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
         refreshTokenRepository.deleteAllByUserId(userId);
+        refreshTokenRepository.save(next);
 
         return LoginDTO.builder()
                 .accessToken(accessToken)
