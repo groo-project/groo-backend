@@ -33,7 +33,7 @@ public class LogAnalyzerService {
     );
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    Logger logger = LoggerFactory.getLogger(LogAnalyzerController.class);
+    Logger logger = LoggerFactory.getLogger(LogAnalyzerService.class);
 
     /**
      * 지정된 날짜의 로그 파일을 파싱하여 접속 이력 LogEntry 객체 목록 반환
@@ -55,6 +55,7 @@ public class LogAnalyzerService {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         } catch (IOException e) {
+            logger.error("로그 파일 읽기 실패", e);
             throw new CustomException(ErrorCode.LOG_FILE_READ_FAILED, e);
         }
     }
@@ -157,8 +158,6 @@ public class LogAnalyzerService {
             Sheet statsSheet = workbook.createSheet("통계");
 
             // IP별 통계
-            System.out.println("//////////////////");
-            System.out.println(getRequestsByIp(entries));
             createStatisticsSection(statsSheet, 0, "IP별 요청 수", getRequestsByIp(entries));
 
             // URI별 통계
@@ -182,6 +181,7 @@ public class LogAnalyzerService {
                 workbook.write(fileOut);
             }
         } catch (Exception e) {
+            logger.error("로그 엑셀 파일 생성 실패", e);
             throw new CustomException(ErrorCode.LOG_EXCEL_FILE_GENERATE_FAILED, e);
         }
     }
