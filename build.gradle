@@ -72,6 +72,14 @@ dependencies {
 
 //    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
 
+    // Logback - 로깅을 위한 구현체 라이브러리
+    implementation 'ch.qos.logback:logback-classic'
+
+    // Apache POI - 분석 결과를 Excel 파일로 내보내기 위한 기본 라이브러리
+    implementation 'org.apache.poi:poi:5.2.3'
+
+    // Apache POI OOXML - .xlsx 형식의 Excel 파일 처리를 위한 확장 라이브러리
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
 
 }
 

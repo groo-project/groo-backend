@@ -43,6 +43,9 @@ public class SecurityConfig  {
 
         http.authorizeHttpRequests(auth -> auth
 
+                        // ADMIN만 가능
+                        .requestMatchers("/api/logs/**").hasRole("ADMIN")
+
                         // health 체크
                         .requestMatchers("/health/**").permitAll()
 

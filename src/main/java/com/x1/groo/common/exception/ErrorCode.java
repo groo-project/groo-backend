@@ -53,6 +53,11 @@ public enum ErrorCode {
     // forest 내 background 관련
     BACKGROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "배경을 찾을 수 없습니다."),
 
+    // 로그
+    LOG_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L001", "로그 파일 읽기 실패"),
+    LOG_FILE_DOWNLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L002", "로그 파일 다운로드 실패"),
+    LOG_EXCEL_FILE_GENERATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L003", "로그 파일 엑셀 생성 실패"),
+
     // 공통
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C001", "서버 오류가 발생했습니다.");
 
