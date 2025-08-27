@@ -17,5 +17,8 @@ public class LoginUserDTO {
     private String email;
 
     @JsonProperty
+    private String nickname;
+
+    @JsonProperty
     private int forestId;
 }

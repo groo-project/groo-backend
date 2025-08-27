@@ -63,7 +63,6 @@ public class UserController {
                                           HttpServletResponse res) {
 
         LoginDTO login = userService.login(loginRequestVO);
-        log.info("login의 forestId : {}", login.getUser().getForestId());
 
         LoginUserDTO user = login.getUser();
 
