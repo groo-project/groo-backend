@@ -29,6 +29,7 @@ public enum ErrorCode {
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "존재하지 않는 일기입니다."),
     DIARY_SAVE_NOT_FOUND(HttpStatus.NOT_FOUND, "D002", "존재하지 않는 임시 저장입니다."),
     DIARY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "D003", "해당 일기에 접근 권한이 없습니다."),
+    DIARY_ALREADY_WRITTEN(HttpStatus.BAD_REQUEST, "D004", "일기는 하루에 하나만 작성 가능합니다."),
 
     // item
     ITEM_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "아이템 카테고리를 찾을 수 없습니다."),

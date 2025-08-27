@@ -1,10 +1,8 @@
 package com.x1.groo.diary.controller;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.diary.dto.*;
 import com.x1.groo.diary.service.DiaryService;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +20,15 @@ import java.util.List;
 public class DiaryController {
 
     private final DiaryService diaryService;
-    private final JwtUtil jwtUtil;
+
+    @Operation(summary = "금일 일기 작성 여부 반환")
+    @GetMapping("/today/written")
+    public ResponseEntity<Boolean> isTodayDiaryWritten(@AuthenticationPrincipal CustomUserDetails user) {
+        int userId = user.getUserId();
+        boolean isTodayDiaryWritten = diaryService.isTodayDiaryWritten(userId);
+
+        return ResponseEntity.ok(isTodayDiaryWritten);
+    }
 
     @Operation(summary = "일기 등록")
     @PostMapping
@@ -55,14 +61,6 @@ public class DiaryController {
         int userId = user.getUserId();
         return ResponseEntity.ok(diaryService.getSaves(userId));
     }
-
-//    private int extractUserId(String authHeader) {
-//        String token = authHeader.startsWith("Bearer ")
-//                ? authHeader.substring(7)
-//                : authHeader.trim();
-//        Claims claims = jwtUtil.parseJwt(token);
-//        return claims.get("userId", Number.class).intValue();
-//    }
 
     @Operation(summary = "일기 임기저장 상세 조회")
     @GetMapping("/save/{diaryId}")

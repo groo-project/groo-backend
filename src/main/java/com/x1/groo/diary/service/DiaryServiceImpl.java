@@ -36,8 +36,25 @@ public class DiaryServiceImpl implements DiaryService {
     private final ItemService itemService;
 
     @Override
+    public boolean isTodayDiaryWritten(int userId) {
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
+
+        return diaryRepo.existsByUserIdAndIsPublishedTrueAndUpdatedAtBetween(
+                userId,
+                startOfDay,
+                endOfDay
+        );
+    }
+
+    @Override
     @Transactional
     public DiaryResponseDTO createDiary(DiaryRequestDTO req, int userId) {
+
+        if (isTodayDiaryWritten(userId)) {
+            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
+        }
+
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
         LocalDateTime createdAt = req.getCreatedAt();
