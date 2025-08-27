@@ -72,7 +72,7 @@ public class CommandMateServiceImpl implements CommandMateService {
     // 초대 수락
     @Transactional
     @Override
-    public void acceptInvite(int userId, String inviteCode) {
+    public int acceptInvite(int userId, String inviteCode) {
 
         String redisKey = "invite:" + inviteCode;
         String value = redisTemplate.opsForValue().get(redisKey);
@@ -106,6 +106,8 @@ public class CommandMateServiceImpl implements CommandMateService {
 
         // 4. 초대코드 삭제
         redisTemplate.delete(redisKey);
+
+        return forestId;
 
     }
 

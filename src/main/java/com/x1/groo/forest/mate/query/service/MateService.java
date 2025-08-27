@@ -16,4 +16,5 @@ public interface MateService {
     List<MateForestResponseDTO> getForestsByUserId(int userId);
 
     MateForestDetailDTO getForestDetail(int forestId);
+
 }

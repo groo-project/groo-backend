@@ -10,7 +10,9 @@ import com.x1.groo.forest.mate.query.service.MateServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -54,7 +56,7 @@ public class MateController {
         return ResponseEntity.ok(diaries);
     }
 
-    @Operation(summary = "유저가 입장중인 우정의 숲 조회")
+    @Operation(summary = "우정의 숲 목록 조회")
     @GetMapping("/forests")
     public List<MateForestResponseDTO> getMyForests(
             @AuthenticationPrincipal CustomUserDetails user) {
@@ -71,4 +73,6 @@ public class MateController {
 
         return mateService.getForestDetail(forestId);
     }
+
+
 }

@@ -62,13 +62,7 @@
            AND forest_id = #{forestId}
     </select>
     
-    <!-- 유저가 입장중인 우정의 숲 조회 -->
-    <select id="findForestsByUserId" resultType="com.x1.groo.forest.mate.query.dto.MateForestResponseDTO">
-        SELECT f.id AS forestId, f.name AS forestName
-          FROM shared_forest sf
-          JOIN forest f ON sf.forest_id = f.id
-         WHERE sf.user_id = #{userId}
-    </select>
+
     
     <!--    우정의 숲 상세 조회 -->
     <resultMap id="MateForestDetailResultMap" type="com.x1.groo.forest.mate.query.dto.MateForestDetailDTO">
@@ -118,4 +112,21 @@
           JOIN user u ON sf.user_id = u.id
          WHERE sf.forest_id = #{forestId}
     </select>
+
+
+    <!-- 유저가 입장중인 우정의 숲 조회 -->
+    <select id="findForestsByUserId" resultType="com.x1.groo.forest.mate.query.dto.MateForestResponseDTO">
+        SELECT
+                f.id AS forestId
+              , f.name AS forestName
+              , COUNT(DISTINCT sf.user_id) AS memberCount
+          FROM shared_forest sf
+          JOIN forest f ON sf.forest_id = f.id
+            WHERE sf.forest_id IN (
+            SELECT forest_id FROM shared_forest WHERE user_id = #{userId}
+            )
+         GROUP BY f.id, f.name
+         ORDER BY f.id
+    </select>
+
 </mapper>
