@@ -3,6 +3,8 @@ package com.x1.groo.diary.service;
 import com.x1.groo.ai.dto.EmotionRequestDTO;
 import com.x1.groo.ai.dto.EmotionResponseDTO;
 import com.x1.groo.ai.service.EmotionService;
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.diary.dto.*;
 import com.x1.groo.diary.entity.Diary;
 import com.x1.groo.diary.entity.DiaryEmotion;
@@ -14,7 +16,6 @@ import com.x1.groo.item.dto.CategoryEmotionItemDTO;
 import com.x1.groo.item.service.ItemService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -35,8 +36,25 @@ public class DiaryServiceImpl implements DiaryService {
     private final ItemService itemService;
 
     @Override
+    public boolean isTodayDiaryWritten(int userId) {
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
+
+        return diaryRepo.existsByUserIdAndIsPublishedTrueAndUpdatedAtBetween(
+                userId,
+                startOfDay,
+                endOfDay
+        );
+    }
+
+    @Override
     @Transactional
     public DiaryResponseDTO createDiary(DiaryRequestDTO req, int userId) {
+
+        if (isTodayDiaryWritten(userId)) {
+            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
+        }
+
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
         LocalDateTime createdAt = req.getCreatedAt();
@@ -48,9 +66,7 @@ public class DiaryServiceImpl implements DiaryService {
                 .orElse(false);
         boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
         if (!(owner || shared)) {
-            throw new AccessDeniedException(
-                    String.format("사용자[%d]가 숲[%d]에 대한 쓰기 권한이 없습니다.", userId, forestId)
-            );
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
         ///   [실제 사용 기능   ///
@@ -149,9 +165,7 @@ public class DiaryServiceImpl implements DiaryService {
                 .orElse(false);
         boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
         if (!(owner || shared)) {
-            throw new AccessDeniedException(
-                    String.format("사용자[%d]가 숲[%d]에 대한 권한이 없습니다.", userId, forestId)
-            );
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
         // 임시 저장
@@ -184,9 +198,9 @@ public class DiaryServiceImpl implements DiaryService {
     @Transactional
     public DiarySaveDetailDTO getSaveDetail(int userId, int diaryId) {
         Diary diary = diaryRepo.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 임시 저장입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_SAVE_NOT_FOUND));
         if (diary.getUserId() != userId || diary.getIsPublished()) {
-            throw new AccessDeniedException("해당 임시 저장에 접근할 권한이 없습니다.");
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
         return new DiarySaveDetailDTO(
                 diary.getId(),
@@ -200,10 +214,10 @@ public class DiaryServiceImpl implements DiaryService {
     @Transactional
     public DiarySaveUpdateResponseDTO updateSave(int userId, int diaryId, DiarySaveRequestDTO req) {
         Diary diary = diaryRepo.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 임시 저장입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_SAVE_NOT_FOUND));
 
         if (diary.getUserId() != userId || diary.getIsPublished()) {
-            throw new AccessDeniedException("해당 임시 저장을 수정할 권한이 없습니다.");
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
         diary.setContent(req.getContent());
@@ -221,9 +235,9 @@ public class DiaryServiceImpl implements DiaryService {
     @Transactional
     public void deleteSave(int userId, int diaryId) {
         Diary diary = diaryRepo.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 임시 저장입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_SAVE_NOT_FOUND));
         if (diary.getUserId() != userId || diary.getIsPublished()) {
-            throw new AccessDeniedException("해당 임시 저장을 삭제할 권한이 없습니다.");
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
         diaryRepo.delete(diary);
     }
@@ -233,9 +247,9 @@ public class DiaryServiceImpl implements DiaryService {
     @Transactional
     public DiaryResponseDTO publishSave(int userId, int diaryId) {
         Diary d = diaryRepo.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("없음"));
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
         if (d.getUserId() != userId || d.getIsPublished()) {
-            throw new AccessDeniedException("권한 없음");
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
         EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
                 new EmotionRequestDTO(d.getContent())
@@ -289,7 +303,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         // 1. 일기 조회
         Diary diary = diaryRepo.findById(diaryId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일기입니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
 
         // 2. 권한 체크
         boolean owner = forestRepo.findById(forestId)
@@ -298,9 +312,7 @@ public class DiaryServiceImpl implements DiaryService {
         boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
 
         if (!(owner || shared)) {
-            throw new AccessDeniedException(
-                    String.format("사용자[%d]가 숲[%d]에 대한 쓰기 권한이 없습니다.", userId, forestId)
-            );
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
         }
 
         // 3. 내용 수정

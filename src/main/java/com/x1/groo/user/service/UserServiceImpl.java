@@ -7,6 +7,9 @@ import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.exception.CustomException;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
+
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
 import com.x1.groo.security.CustomUserDetails;
@@ -26,6 +29,7 @@ import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,7 +41,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -80,12 +83,12 @@ public class UserServiceImpl implements UserService {
         Optional<UserEntity> existingUser = userRepository.findByEmailOrNickname(signupRequestVO.getEmail(),
                 signupRequestVO.getNickname());
         if (existingUser.isPresent()) {
-            throw new CustomException("이미 존재하는 닉네임입니다.");
+            throw new CustomException(ErrorCode.USER_NICKNAME_DUPLICATE);
         }
 
         // 이메일 인증 여부 확인
         if (!redisUtil.exists(signupRequestVO.getEmail())) {
-            throw new CustomException("이메일 인증을 먼저 진행해 주세요.");
+            throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
 
         // DTO → Entity 변환 / 엔티티의 password 컬럼에 암호화 된 값을 추가
@@ -108,14 +111,14 @@ public class UserServiceImpl implements UserService {
     public LoginResponseVO findMemberInfoById(Long userId) {
         return userRepository.findById(userId)
                 .map(LoginResponseVO::of)
-                .orElseThrow(() -> new RuntimeException("로그인 유저 정보가 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
     public LoginResponseVO findMemberInfoByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(LoginResponseVO::of)
-                .orElseThrow(() -> new RuntimeException("유저 정보가 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
@@ -132,14 +135,14 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<String> verifyEmailAuthentication(EmailCheckDTO emailCheckDto) {
         // 이메일 중복 확인
         if (isEmailRegistered(emailCheckDto.getEmail())) {
-            return ResponseEntity.badRequest().body("이미 가입된 이메일입니다.");
+            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
         }
 
         // 인증번호 직접 검증
         String storedAuthNum = redisUtil.getData(emailCheckDto.getEmail());
 
         if (storedAuthNum == null || !storedAuthNum.equals(emailCheckDto.getAuthNum())) {
-            return ResponseEntity.badRequest().body("인증 번호가 일치하지 않습니다.");
+            throw new CustomException(ErrorCode.USER_EMAIL_AUTH_FAILED);
         }
 
         return ResponseEntity.ok("인증 성공");
@@ -203,7 +206,7 @@ public class UserServiceImpl implements UserService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         UserEntity loginUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(email + " 해당 유저를 찾을 수 없습니다."));  // email 필드로 where절을 걸어서 조회하는 쿼리 메소드
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));  // email 필드로 where절을 걸어서 조회하는 쿼리 메소드
 
         // DTO → CustomUserDetails
         UserDTO dto = UserDTO.builder()

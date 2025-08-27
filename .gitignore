@@ -56,3 +56,6 @@ jenkins_home/
 *.jenkins
 *.groovy
 pipeline.log
+
+# logs
+/logs/

@@ -1,5 +1,7 @@
 package com.x1.groo.item.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.item.dto.CategoryDTO;
 import com.x1.groo.item.dto.CategoryEmotionItemDTO;
 import com.x1.groo.item.repository.ItemMapper;
@@ -22,14 +24,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<CategoryDTO> findAllCategories() {
+
         List<CategoryDTO> categoryDTOList = itemMapper.selectAllCategories();
+        if (categoryDTOList.isEmpty()) {
+            throw new CustomException(ErrorCode.ITEM_CATEGORY_NOT_FOUND);
+        }
         return categoryDTOList;
     }
 
     @Override
     public List<CategoryEmotionItemDTO> findItemsByCategoryAndEmotion(int categoryId, String mainEmotion) {
-        List<CategoryEmotionItemDTO> itemDTOList = itemMapper.selectItemsByCategoryAndEmotion(categoryId, mainEmotion);
 
+        List<CategoryEmotionItemDTO> itemDTOList = itemMapper.selectItemsByCategoryAndEmotion(categoryId, mainEmotion);
+        if (itemDTOList.isEmpty()) {
+            throw new CustomException(ErrorCode.ITEMS_NOT_FOUND_FOR_CATEGORY_EMOTION);
+        }
         return itemDTOList;
     }
 }

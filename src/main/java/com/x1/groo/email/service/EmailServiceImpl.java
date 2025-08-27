@@ -1,5 +1,7 @@
 package com.x1.groo.email.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.user.service.UserService;
 import jakarta.mail.MessagingException;
@@ -59,8 +61,7 @@ public class EmailServiceImpl implements EmailService {
 
             return Integer.toString(authNumber);
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new CustomException(ErrorCode.EMAIL_TEMPLATE_LOAD_FAIL, e);
         }
     }
 
@@ -70,17 +71,6 @@ public class EmailServiceImpl implements EmailService {
         ClassPathResource resource = new ClassPathResource("email-template.html");
         byte[] fileBytes = Files.readAllBytes(Paths.get(resource.getURI()));
         return new String(fileBytes, "UTF-8");
-    }
-
-    @Override
-    public boolean CheckAuthNum(String email, String authNum) {
-        String storedAuthNum = redisUtil.getData(email);                // email을 키로 조회
-        return storedAuthNum != null && storedAuthNum.equals(authNum);
-    }
-
-    @Override
-    public boolean isEmailRegistered(String email) {
-        return userService.isEmailRegistered(email);
     }
 
     // 이메일 전송
@@ -94,7 +84,7 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(content, true);
             mailSender.send(message);
         } catch (MessagingException e) {
-            e.printStackTrace();
+            throw new CustomException(ErrorCode.EMAIL_SEND_FAIL, e);
         }
 
         // key : 이메일, value : 인증 번호

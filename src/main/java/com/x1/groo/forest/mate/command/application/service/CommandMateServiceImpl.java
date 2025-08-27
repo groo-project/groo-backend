@@ -1,5 +1,7 @@
 package com.x1.groo.forest.mate.command.application.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -37,7 +39,7 @@ public class CommandMateServiceImpl implements CommandMateService {
         boolean isMember = sharedForestRepository.existsByUserIdAndForestId(userId, forestId);
 
         if (!isMember) {
-            throw new IllegalStateException("해당 숲에 속해있지 않습니다.");
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
         }
 
         sharedForestRepository.deleteByUserIdAndForestId(userId, forestId);
@@ -78,26 +80,26 @@ public class CommandMateServiceImpl implements CommandMateService {
         String value = redisTemplate.opsForValue().get(redisKey);
 
         if (value == null) {
-            throw new IllegalArgumentException("초대코드가 만료되었거나 유효하지 않습니다.");
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
         }
 
         int forestId;
         try {
             forestId = Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("초대 코드에 해당하는 데이터가 잘못되었습니다.");
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
         }
 
         // 1. 이미 수락했는지 검사
         boolean alreadyJoined = sharedForestRepository.existsByUserIdAndForestId(userId, forestId);
         if (alreadyJoined) {
-            throw new IllegalStateException("이미 이 숲에 참여한 사용자입니다.");
+            throw new CustomException(ErrorCode.FOREST_ALREADY_ACCEPTED_INVITE);
         }
 
         // 2. 현재 공유숲 참여 인원이 4명 이상인지 검사
         int currentMemberCount = sharedForestRepository.countByForestId(forestId);
         if (currentMemberCount >= 4) {
-            throw new IllegalStateException("이 공유숲은 정원이 가득 찼습니다.");
+            throw new CustomException(ErrorCode.FOREST_FULL);
         }
 
         // 3. 가입
@@ -117,10 +119,10 @@ public class CommandMateServiceImpl implements CommandMateService {
     @Transactional
     public void createMateForest(int userId, CreateMateForestRequest request) {
         UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_ACCESS_DENIED));
 
         BackgroundEntity background = backgroundRepository.findById(1)
-                .orElseThrow(() -> new IllegalArgumentException("기본 배경을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.BACKGROUND_NOT_FOUND));
 
         ForestEntity forest = new ForestEntity();
         forest.setName(request.getForestName());

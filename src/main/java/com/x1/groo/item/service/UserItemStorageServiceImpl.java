@@ -1,11 +1,12 @@
 package com.x1.groo.item.service;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.emotion.command.domain.repository.EmotionSharedForestRepository;
 import com.x1.groo.item.domain.storage.aggregate.UserItemStorageEntity;
 import com.x1.groo.item.domain.storage.repository.UserItemStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,7 +37,7 @@ public class UserItemStorageServiceImpl implements UserItemStorageService {
         boolean hasSharedAccess = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
 
         if (!(isOwner || hasSharedAccess)) {
-            throw new AccessDeniedException("이 숲에 대한 접근 권한이 없습니다.");
+            throw new CustomException(ErrorCode.ITEM_STORAGE_ACCESS_DENIED);
         }
 
         // 2. 해당 유저의 보관함에 아이템이 있는지 확인
@@ -45,20 +46,28 @@ public class UserItemStorageServiceImpl implements UserItemStorageService {
                 .orElse(null);
 
         if (existing != null) {
-            // 보유 중이면 count + 1
-            existing.setTotalCount(existing.getTotalCount() + 1);
-            existing.setPlacedCount(existing.getPlacedCount() + 1);
-            userItemStorageRepo.save(existing);
+            try {
+                // 보유 중이면 count + 1
+                existing.setTotalCount(existing.getTotalCount() + 1);
+                existing.setPlacedCount(existing.getPlacedCount() + 1);
+                userItemStorageRepo.save(existing);
+            } catch (Exception e) {
+                throw new CustomException(ErrorCode.ITEM_STORAGE_SAVE_FAIL, e);
+            }
         } else {
-            // 보유하지 않은 경우 새로 저장
-            UserItemStorageEntity newItem = UserItemStorageEntity.builder()
-                    .userId(userId)
-                    .itemId(itemId)
-                    .forestId(forestId)
-                    .totalCount(1)
-                    .placedCount(0)
-                    .build();
-            userItemStorageRepo.save(newItem);
+            try {
+                // 보유하지 않은 경우 새로 저장
+                UserItemStorageEntity newItem = UserItemStorageEntity.builder()
+                        .userId(userId)
+                        .itemId(itemId)
+                        .forestId(forestId)
+                        .totalCount(1)
+                        .placedCount(0)
+                        .build();
+                userItemStorageRepo.save(newItem);
+            } catch (Exception e) {
+                throw new CustomException(ErrorCode.ITEM_STORAGE_SAVE_FAIL, e);
+            }
         }
     }
 
