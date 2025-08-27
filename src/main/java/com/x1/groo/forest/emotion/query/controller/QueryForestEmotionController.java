@@ -24,7 +24,7 @@ import java.util.List;
 
 @Tag(name = "감정숲")
 @RestController
-@RequestMapping
+@RequestMapping("/api")
 @Slf4j
 public class QueryForestEmotionController {
 
@@ -46,19 +46,16 @@ public class QueryForestEmotionController {
 
         int userId = user.getUserId();
 
-        log.info("userId = {}", userId);
-
         List<QueryForestEmotionUserItemDTO> items = queryForestEmotionService.getPieceOfMemory(userId, categoryId, forestId);
 
         if (items == null || items.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("보유한 기억의 조각이 없습니다. 일기를 써서 더 많은 조각들을 모아봐요🌸");
+            return ResponseEntity.ok(items);
         }
 
         return ResponseEntity.ok(items);
     }
 
-    @Operation(summary = "감정의 숲에 작성된 방명록 리스트 조회")
+    @Operation(summary = "작성된 방명록 리스트 조회")
     @GetMapping("/mailbox-lists/{forestId}")
     public ResponseEntity<List<QueryForestEmotionMailboxListDTO>> getMailboxList(
             @AuthenticationPrincipal CustomUserDetails user,

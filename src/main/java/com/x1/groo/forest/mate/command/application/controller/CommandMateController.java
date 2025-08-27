@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 @Tag(name = "우정의 숲", description = "우정의 숲 관련 기능을 제공합니다.")
 @RestController
-@RequestMapping("/mate")
+@RequestMapping("/api/mate")
 @Slf4j
 public class CommandMateController {
 
@@ -60,13 +61,14 @@ public class CommandMateController {
 
     @Operation(summary = "초대 수락")
     @PostMapping("/accept/{inviteCode}")
-    public ResponseEntity<String> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
+    public ResponseEntity<Map<String,Integer>> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
                                                @PathVariable String inviteCode) {
 
         int userId = user.getUserId();
-        commandMateService.acceptInvite(userId, inviteCode);
+        int forestId = commandMateService.acceptInvite(userId, inviteCode);
 
-        return ResponseEntity.ok("초대 수락 성공");
+
+        return ResponseEntity.ok(Map.of("forestId",forestId));
 
     }
 

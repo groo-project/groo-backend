@@ -12,7 +12,7 @@ import java.util.List;
 
 @Tag(name = "S3", description = "이미지 업로드 및 상태 점검기능을 제공합니다.")
 @RestController
-@RequestMapping("/image")
+@RequestMapping("/api/image")
 public class S3Controller {
 
     private final S3Service s3Service;

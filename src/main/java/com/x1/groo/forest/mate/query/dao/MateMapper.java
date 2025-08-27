@@ -43,6 +43,7 @@ public interface MateMapper {
             @Param("userId") int userId,
             @Param("forestId") int forestId
     );
+
 }
 
 

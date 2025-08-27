@@ -17,7 +17,7 @@ import java.util.List;
 
 @Tag( name = "아이템 정보 조회", description = "아이템 정보를 조회하는 기능을 제공합니다.")
 @RestController
-@RequestMapping
+@RequestMapping("/api")
 public class ItemController {
 
     private final ItemService itemService;
