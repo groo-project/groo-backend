@@ -50,6 +50,11 @@ public class DiaryServiceImpl implements DiaryService {
     @Override
     @Transactional
     public DiaryResponseDTO createDiary(DiaryRequestDTO req, int userId) {
+
+        if (isTodayDiaryWritten(userId)) {
+            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
+        }
+
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
         LocalDateTime createdAt = req.getCreatedAt();
