@@ -40,36 +40,9 @@ public class UserDTO {
         return UserDTO.builder()
                 .id(e.getId())
                 .email(e.getEmail())
-//                .password(e.getPassword())   // 해시 그대로
                 .nickname(e.getNickname())
-//                .role(e.getRole())           // 엔티티가 단일 role 문자열일 때
                 .build();
 }
-
-
-//    public CustomUserDetails toUserDetails(UserDTO users, Collections<? extends GrantedAuthority> authorities) {
-//        return CustomUserDetails.
-//    }
-//    public static CustomUserDetails from(UserDTO dto,
-//                                     Collection<? extends GrantedAuthority> authorities) {
-//    return CustomUserDetails.builder()
-//            .id(dto.getId())
-//            .email(dto.getEmail())
-//            .password(dto.getPassword())
-//            .nickname(dto.getNickname())
-//            .authorities(authorities)
-//            .build();
-//}
-
-//    public CustomUserDetails toUserDetails(UserDTO dto) {
-//        return CustomUserDetails.builder()
-//                .id(dto.getId())
-//                .email(dto.getEmail())
-//                .password(dto.getPassword())
-//                .nickname(dto.getNickname())
-////                .authorities(authorities)
-//                .build();
-//    }
 
     public CustomUserDetails toUserDetails() {   // ✅ 인자 없이 this 사용
         return CustomUserDetails.from(this);

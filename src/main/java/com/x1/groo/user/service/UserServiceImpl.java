@@ -6,6 +6,7 @@ import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.exception.CustomException;
+import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
 import com.x1.groo.security.CustomUserDetails;
@@ -55,11 +56,13 @@ public class UserServiceImpl implements UserService {
     private final CommandEmotionForestService forestService;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ForestRepository forestRepository;
 
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            ModelMapper modelMapper, RedisUtil redisUtil, CommandEmotionForestService forestService,
                            JwtUtil jwtUtil,
-                           RefreshTokenRepository refreshTokenRepository) {
+                           RefreshTokenRepository refreshTokenRepository,
+                           ForestRepository forestRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.modelMapper = modelMapper;
@@ -67,6 +70,7 @@ public class UserServiceImpl implements UserService {
         this.forestService = forestService;
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.forestRepository = forestRepository;
     }
 
     // 기능 : 회원가입
@@ -157,8 +161,9 @@ public class UserServiceImpl implements UserService {
 
 
         // 3) UserDTO로 변환 → CustomUserDetails 생성
-        UserDTO userDto = UserDTO.fromEntity(loginUser);   // ⚠️ fromEntity에서 id 타입 주의(아래 참고)
+        UserDTO userDto = UserDTO.fromEntity(loginUser);   // ⚠️ fromEntity 에서 id 타입 주의(아래 참고)
         CustomUserDetails user = new CustomUserDetails(userDto);
+
 
         // 4) 권한 문자열 목록 뽑기 ("ROLE_USER" 형태)
         List<String> roles = user.getAuthorities().stream()
@@ -183,11 +188,13 @@ public class UserServiceImpl implements UserService {
         refreshTokenRepository.deleteAllByUserId(userId);
         refreshTokenRepository.save(next);
 
+        int forestId = forestRepository.findActiveForestIdByUserId(loginUser.getId());
+
         return LoginDTO.builder()
                 .accessToken(accessToken)
                 .roles(roles)
                 .refreshToken(newRt)
-                .user(new LoginUserDTO(user.getUserId(), user.getName(), user.getForestId()))
+                .user(new LoginUserDTO(user.getUserId(), user.getName(), forestId))
                 .build();
     }
 
