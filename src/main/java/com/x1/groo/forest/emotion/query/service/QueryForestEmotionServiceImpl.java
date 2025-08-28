@@ -42,7 +42,12 @@ public class QueryForestEmotionServiceImpl implements QueryForestEmotionService 
     }
 
     public List<QueryForestEmotionDetailDTO> getForestDetail(int userId, int forestId) {
-        return queryForestEmotionMapper.findForestDetail(userId, forestId);
+        List<QueryForestEmotionDetailDTO> result = queryForestEmotionMapper.findForestDetail(userId, forestId);
+
+        if (result.isEmpty()) {
+            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
+        }
+        return result;
     }
 
     // 날짜별 일기 조회
