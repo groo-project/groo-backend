@@ -5,7 +5,6 @@ import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
-import com.x1.groo.email.exception.CustomException;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 
 import com.x1.groo.common.exception.CustomException;
@@ -27,9 +26,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.validation.Valid;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,7 +36,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

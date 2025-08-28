@@ -51,9 +51,10 @@ public class DiaryServiceImpl implements DiaryService {
     @Transactional
     public DiaryResponseDTO createDiary(DiaryRequestDTO req, int userId) {
 
-        if (isTodayDiaryWritten(userId)) {
-            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
-        }
+        // 배포 시 적용
+//        if (isTodayDiaryWritten(userId)) {
+//            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
+//        }
 
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
