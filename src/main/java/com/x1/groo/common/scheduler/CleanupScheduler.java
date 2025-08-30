@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class InviteCleanupScheduler {
+public class CleanupScheduler {
 
     private final ForestInviteRepository forestInviteRepository;
     private final EmailRepository emailRepository;

@@ -24,16 +24,6 @@ public class CorsConfig {
         //  예: Spring Security → config.setAllowCredentials(true)
         config.setAllowCredentials(true);
 
-        // 쿠키 발급 예시 (Set-Cookie)
-//        ResponseCookie cookie = ResponseCookie.from("refreshToken", rt)
-//                .httpOnly(true)
-//                .secure(true)             // HTTPS에서 true
-//                .sameSite("Lax")          // 또는 Strict
-//                .path("/api/auth")        // 필요한 범위로
-//                .maxAge(Duration.ofDays(14))
-//                .build();
-//        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

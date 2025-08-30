@@ -17,7 +17,6 @@ public interface SharedForestRepository extends JpaRepository<SharedForestEntity
 
     void deleteByUserIdAndForestId(int userId, int id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select count(sf) from SharedForestEntity sf where sf.forestId = :forestId")
     int countByForestIdForUpdate(@Param("forestId") int forestId);
 }

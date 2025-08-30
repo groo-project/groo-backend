@@ -58,6 +58,7 @@ public class UserController {
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
 
         CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
+        CookieUtil.setAccessCookie(res, accessToken, jwtUtil.getAccessTtl());
 
         List<String> roles = login.getRoles();
 

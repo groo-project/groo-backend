@@ -151,4 +151,8 @@ public class JwtUtil {
         return Duration.ofMillis(refreshExpirationMs);
     }
 
+    public Duration getAccessTtl() {
+        return Duration.ofMillis(accessExpirationMs);
+    }
+
 }
