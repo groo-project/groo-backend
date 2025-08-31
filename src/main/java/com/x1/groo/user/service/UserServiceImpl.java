@@ -3,14 +3,17 @@ package com.x1.groo.user.service;
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
+import com.x1.groo.email.aggregate.EmailEntity;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.email.dto.EmailCheckDTO;
+import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.RequestCreateVO;
+import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.security.vo.LoginRequestVO;
@@ -26,6 +29,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import jakarta.validation.Valid;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,6 +46,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static java.awt.SystemColor.info;
+
 @Service
 @Builder
 @Slf4j
@@ -55,12 +61,14 @@ public class UserServiceImpl implements UserService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ForestRepository forestRepository;
+    private final EmailRepository emailRepository;
+    private final ForestInviteRepository forestInviteRepository;
 
     public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder,
                            ModelMapper modelMapper, RedisUtil redisUtil, CommandEmotionForestService forestService,
                            JwtUtil jwtUtil,
                            RefreshTokenRepository refreshTokenRepository,
-                           ForestRepository forestRepository) {
+                           ForestRepository forestRepository, EmailRepository emailRepository, ForestInviteRepository forestInviteRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.modelMapper = modelMapper;
@@ -69,6 +77,8 @@ public class UserServiceImpl implements UserService {
         this.jwtUtil = jwtUtil;
         this.refreshTokenRepository = refreshTokenRepository;
         this.forestRepository = forestRepository;
+        this.emailRepository = emailRepository;
+        this.forestInviteRepository = forestInviteRepository;
     }
 
     // 기능 : 회원가입
@@ -121,24 +131,28 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(nickname);
     }
 
-    @Override
-    public boolean isEmailRegistered(String email) {
-        return userRepository.existsByEmail(email);
-    }
 
     @Override
     public ResponseEntity<String> verifyEmailAuthentication(EmailCheckDTO emailCheckDto) {
-        // 이메일 중복 확인
-        if (isEmailRegistered(emailCheckDto.getEmail())) {
+
+        String email = emailCheckDto.getEmail();
+
+        EmailEntity entity = emailRepository.findByEmail(email);
+
+        if (userRepository.existsByEmail(email)) {
             throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
         }
 
-        // 인증번호 직접 검증
-        String storedAuthNum = redisUtil.getData(emailCheckDto.getEmail());
-
+        String storedAuthNum = entity.getVerificationCode();
         if (storedAuthNum == null || !storedAuthNum.equals(emailCheckDto.getAuthNum())) {
             throw new CustomException(ErrorCode.USER_EMAIL_AUTH_FAILED);
         }
+
+
+        entity.setVerified(true);
+        entity.setUsedAt(LocalDateTime.now());
+
+        emailRepository.save(entity);
 
         return ResponseEntity.ok("인증 성공");
     }
@@ -147,32 +161,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginDTO login(LoginRequestVO req) {
 
-        // 1) 사용자 조회
+        //  사용자 조회
         UserEntity loginUser = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() ->
                         new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        // 2) 비밀번호 검증
+        //  비밀번호 검증
         if (!bCryptPasswordEncoder.matches(req.getPassword(), loginUser.getPassword())) {
             throw new BadCredentialsException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
 
-        // 3) UserDTO로 변환 → CustomUserDetails 생성
-        UserDTO userDto = UserDTO.fromEntity(loginUser);   // ⚠️ fromEntity 에서 id 타입 주의(아래 참고)
+        //  UserDTO로 변환 → CustomUserDetails 생성
+        UserDTO userDto = UserDTO.fromEntity(loginUser);
         CustomUserDetails user = new CustomUserDetails(userDto);
 
 
-        // 4) 권한 문자열 목록 뽑기 ("ROLE_USER" 형태)
+        //  권한 문자열 목록 뽑기 ("ROLE_USER" 형태)
         List<String> roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
 
 
-        // 4) AT 발급 (짧은 만료, 예: 15분)
+        //  AT 발급
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
 
-        // 5) RT 발급 & 저장(회전) (긴 만료, 예: 14일)
+        //  RT 발급 & 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());
 
         Jws<Claims> jws = jwtUtil.parserClaimsJws(newRt);
