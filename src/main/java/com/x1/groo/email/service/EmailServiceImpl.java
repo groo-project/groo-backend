@@ -2,7 +2,9 @@ package com.x1.groo.email.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.email.aggregate.EmailEntity;
 import com.x1.groo.email.config.RedisUtil;
+import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.user.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -10,6 +12,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -18,21 +23,16 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
     private final RedisUtil redisUtil;
     private final UserService userService;
+    private final EmailRepository emailRepository;
 
     @Value("${spring.mail.auth-code-expiration-millis}")
     private long authCodeExpirationMillis;
-
-    @Autowired
-    public EmailServiceImpl(JavaMailSender mailSender, RedisUtil redisUtil, UserService userService) {
-        this.mailSender = mailSender;
-        this.redisUtil = redisUtil;
-        this.userService = userService;
-    }
 
     private int authNumber;
 
@@ -42,12 +42,16 @@ public class EmailServiceImpl implements EmailService {
         authNumber = r.nextInt(900000) + 100000; // 100000 ~ 999999
     }
 
+    @Transactional
     @Override
     public String joinEmail(String email) {
         makeRandomNumber();
         String setFrom = "\"Groo Admin\" <x1grooservice@gmail.com>";
-        String toMail = email;
         String title = "Groo 회원 가입 인증 이메일 입니다.";
+
+        EmailEntity entity = new EmailEntity();
+        entity.setEmail(email);
+        entity.setVerificationCode(String.valueOf(authNumber));
 
         try {
             // HTML 템플릿 로드
@@ -57,7 +61,9 @@ public class EmailServiceImpl implements EmailService {
             content = content.replace("${authNumber}", String.valueOf(authNumber));
 
             // 이메일 발송
-            mailSend(setFrom, toMail, title, content);
+            mailSend(setFrom, email, title, content);
+
+            emailRepository.save(entity);
 
             return Integer.toString(authNumber);
         } catch (IOException e) {

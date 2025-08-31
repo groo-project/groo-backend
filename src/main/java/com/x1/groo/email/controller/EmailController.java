@@ -33,6 +33,8 @@ public class EmailController {
     @Operation(summary = "인증 코드 일치 여부 확인")
     @PostMapping("/verification")
     public ResponseEntity<String> verifyEmail(@RequestBody @Valid EmailCheckDTO emailCheckDto) {
+
+        log.info("email: {}, auth: {}", emailCheckDto.getEmail(),emailCheckDto.getAuthNum());
         return userService.verifyEmailAuthentication(emailCheckDto);
     }
 }

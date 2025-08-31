@@ -23,8 +23,6 @@ public interface UserService extends UserDetailsService {
 
     boolean isNicknameExists(String nickname);
 
-    boolean isEmailRegistered(String email);
-
     ResponseEntity<String> verifyEmailAuthentication(@Valid EmailCheckDTO emailCheckDto);
 
     UserDTO getUserById(String memNo);

@@ -19,4 +19,5 @@ public interface ForestRepository extends JpaRepository<ForestEntity, Integer> {
     @Query("select f.id from ForestEntity f where f.user.id = :userId order by 1 ASC \n" +
             "       limit 1")
     int findActiveForestIdByUserId(@Param("userId") int id);
+
 }

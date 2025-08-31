@@ -59,64 +59,27 @@ public class DiaryServiceImpl implements DiaryService {
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
         LocalDateTime createdAt = req.getCreatedAt();
-
-
-        // 권한 체크
-        boolean owner = forestRepo.findById(forestId)
-                .map(f -> f.getUser().getId() == userId)
-                .orElse(false);
-        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
-        if (!(owner || shared)) {
-            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
-        }
-
-        ///   [실제 사용 기능   ///
-        // AI 감정 분석
-        EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
-                new EmotionRequestDTO(req.getContent())
-        );
-        String mainEmotion = aiRes.getMainEmotion()
-                .trim()
-                .replaceAll("[\"\\r\\n]", "");
-
-        String weather = aiRes.getWeather();
-
-        // Diary 저장
-        Diary diary = new Diary();
-        diary.setContent(req.getContent());
-        diary.setIsPublished(true);
-        diary.setUserId(userId);
-        diary.setForestId(forestId);
-        diary.setWeather(weather);
-        diary.setCreatedAt(createdAt);
-        diary.setUpdatedAt(LocalDateTime.now());
-        Diary savedDiary = diaryRepo.save(diary);
-
-        // 상위 2개 감정 추출 및 저장
-        LinkedHashMap<String, Integer> top2 = aiRes.getEmotionResult().entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                .limit(2)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (oldVal, newVal) -> oldVal,
-                        LinkedHashMap::new
-                ));
-        top2.forEach((emotion, weight) -> {
-            DiaryEmotion de = new DiaryEmotion();
-            de.setDiary(savedDiary);
-            de.setEmotion(emotion);
-            de.setWeight(weight);
-            emotionRepo.save(de);
-        });
-
-        List<CategoryEmotionItemDTO> emotionItems =
-          itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
-        ///   실제 사용 기능]   ///
-
-        ///   [테스트용 기능   /// OpenAPI 요금을 사용하지 않기 위함. 실제 사용 기능 부분을 주석처리 후 사용
-//        String weather = "맑음";
-//        String mainEmotion = "즐거움";
+//
+//
+//        // 권한 체크
+//        boolean owner = forestRepo.findById(forestId)
+//                .map(f -> f.getUser().getId() == userId)
+//                .orElse(false);
+//        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
+//        if (!(owner || shared)) {
+//            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
+//        }
+//
+//        ///   [실제 사용 기능   ///
+//        // AI 감정 분석
+//        EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
+//                new EmotionRequestDTO(req.getContent())
+//        );
+//        String mainEmotion = aiRes.getMainEmotion()
+//                .trim()
+//                .replaceAll("[\"\\r\\n]", "");
+//
+//        String weather = aiRes.getWeather();
 //
 //        // Diary 저장
 //        Diary diary = new Diary();
@@ -129,10 +92,16 @@ public class DiaryServiceImpl implements DiaryService {
 //        diary.setUpdatedAt(LocalDateTime.now());
 //        Diary savedDiary = diaryRepo.save(diary);
 //
-//        LinkedHashMap<String, Integer> top2 = new LinkedHashMap<>();
-//        top2.put("즐거움", 60);
-//        top2.put("설렘", 40);
-//
+//        // 상위 2개 감정 추출 및 저장
+//        LinkedHashMap<String, Integer> top2 = aiRes.getEmotionResult().entrySet().stream()
+//                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+//                .limit(2)
+//                .collect(Collectors.toMap(
+//                        Map.Entry::getKey,
+//                        Map.Entry::getValue,
+//                        (oldVal, newVal) -> oldVal,
+//                        LinkedHashMap::new
+//                ));
 //        top2.forEach((emotion, weight) -> {
 //            DiaryEmotion de = new DiaryEmotion();
 //            de.setDiary(savedDiary);
@@ -142,7 +111,38 @@ public class DiaryServiceImpl implements DiaryService {
 //        });
 //
 //        List<CategoryEmotionItemDTO> emotionItems =
-//                itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
+//          itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
+        ///   실제 사용 기능]   ///
+
+        ///   [테스트용 기능   /// OpenAPI 요금을 사용하지 않기 위함. 실제 사용 기능 부분을 주석처리 후 사용
+        String weather = "맑음";
+        String mainEmotion = "즐거움";
+
+        // Diary 저장
+        Diary diary = new Diary();
+        diary.setContent(req.getContent());
+        diary.setIsPublished(true);
+        diary.setUserId(userId);
+        diary.setForestId(forestId);
+        diary.setWeather(weather);
+        diary.setCreatedAt(createdAt);
+        diary.setUpdatedAt(LocalDateTime.now());
+        Diary savedDiary = diaryRepo.save(diary);
+
+        LinkedHashMap<String, Integer> top2 = new LinkedHashMap<>();
+        top2.put("즐거움", 60);
+        top2.put("설렘", 40);
+
+        top2.forEach((emotion, weight) -> {
+            DiaryEmotion de = new DiaryEmotion();
+            de.setDiary(savedDiary);
+            de.setEmotion(emotion);
+            de.setWeight(weight);
+            emotionRepo.save(de);
+        });
+
+        List<CategoryEmotionItemDTO> emotionItems =
+                itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
         ///   테스트용 기능]   ///
 
         return new DiaryResponseDTO(

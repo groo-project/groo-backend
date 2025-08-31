@@ -25,18 +25,15 @@ import java.util.Map;
 @Slf4j
 public class CommandMateController {
 
-    private final JwtUtil jwtUtil;
     private final CommandMateService commandMateService;
 
     @Autowired
-    public CommandMateController(JwtUtil jwtUtil, CommandMateService commandMateService) {
-        this.jwtUtil = jwtUtil;
+    public CommandMateController(CommandMateService commandMateService) {
         this.commandMateService = commandMateService;
     }
 
     @Operation(summary = "공유의 숲 탈퇴 및 숲 삭제", description = "숲의 정원이 0명일 경우 숲이 삭제됩니다.")
     @Transactional
-    // 공유의 숲 탈퇴 및 숲 삭제(0명이 되었을 때)
     @DeleteMapping("/quit")
     public ResponseEntity<String> quit(@AuthenticationPrincipal CustomUserDetails user,
                                        @RequestParam int forestId) {
@@ -49,12 +46,12 @@ public class CommandMateController {
 
     @Operation(summary = "초대 링크 생성")
     @GetMapping("/link")
-    public CreateInviteRequest createInviteLink(@RequestParam int forestId) {
+    public CreateInviteRequest createInviteLink(@RequestParam int forestId,
+                                                @AuthenticationPrincipal CustomUserDetails user) {
 
-        // 초대 링크 생성하고 결과 받기
-        String inviteCode = commandMateService.createInviteLink(forestId);
+        int userId = user.getUserId();
+        String inviteCode = commandMateService.createInviteLink(forestId, userId);
 
-        // 초대코드를 이용해서 최종 초대링크로 감싸기
         String inviteLink = "http://localhost:5173/mate/invite/" + inviteCode;
         return new CreateInviteRequest(inviteLink);
     }
@@ -66,7 +63,6 @@ public class CommandMateController {
 
         int userId = user.getUserId();
         int forestId = commandMateService.acceptInvite(userId, inviteCode);
-
 
         return ResponseEntity.ok(Map.of("forestId",forestId));
 
