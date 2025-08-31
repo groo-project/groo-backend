@@ -5,7 +5,7 @@ import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 public interface CommandMateService {
     String createInviteLink(int forestId, int userId);
 
-    int acceptInvite(int userId, int id);
+    int acceptInvite(int userId, String inviteCode);
 
     void quit(int userId, int forestId);
 

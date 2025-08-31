@@ -57,12 +57,12 @@ public class CommandMateController {
     }
 
     @Operation(summary = "초대 수락")
-    @PostMapping("/accept/{id}")
+    @PostMapping("/accept/{inviteCode}")
     public ResponseEntity<Map<String,Integer>> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
-                                               @PathVariable int id) {
+                                               @PathVariable String inviteCode) {
 
         int userId = user.getUserId();
-        int forestId = commandMateService.acceptInvite(userId, id);
+        int forestId = commandMateService.acceptInvite(userId, inviteCode);
 
         return ResponseEntity.ok(Map.of("forestId",forestId));
 

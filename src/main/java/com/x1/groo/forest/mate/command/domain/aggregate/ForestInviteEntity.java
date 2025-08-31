@@ -24,6 +24,9 @@ public class ForestInviteEntity {
     @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "used_at")
+    private LocalDateTime usedAt;
+
     @Column(nullable = false, name = "expires_at")
     private LocalDateTime expiresAt;
 

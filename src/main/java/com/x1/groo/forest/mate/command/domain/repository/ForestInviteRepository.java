@@ -13,14 +13,17 @@ public interface ForestInviteRepository extends JpaRepository<ForestInviteEntity
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
     UPDATE forest_invite
-       SET status = 'USED'
-     WHERE id = :id
+       SET status = 'USED',
+           used_at = NOW()
+     WHERE code = :inviteCode
        AND status = 'ACTIVE'
        AND expires_at > NOW()
   """, nativeQuery = true)
-    int consume(@Param("id") int id);
+    int consume(@Param("inviteCode") String inviteCode);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM ForestInviteEntity f WHERE f.expiresAt < :cutoff")
     int deleteExpired(@Param("cutoff") LocalDateTime cutoff);
+
+    ForestInviteEntity findByCode(String inviteCode);
 }

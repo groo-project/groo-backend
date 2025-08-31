@@ -90,11 +90,11 @@ public class CommandMateServiceImpl implements CommandMateService {
     // 초대 수락
     @Transactional
     @Override
-    public int acceptInvite(int userId, int id) {
+    public int acceptInvite(int userId, String inviteCode) {
 
 
-        ForestInviteEntity invite = forestInviteRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID));
+        ForestInviteEntity invite = forestInviteRepository.findByCode(inviteCode);
+        if(invite == null) throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
 
         int forestId = invite.getForestId();
 
@@ -106,7 +106,7 @@ public class CommandMateServiceImpl implements CommandMateService {
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_EXPIRED);
 
         // 초대코드 동시 수락 방지
-        int updated = forestInviteRepository.consume(id);
+        int updated = forestInviteRepository.consume(inviteCode);
         if (updated != 1) {
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
         }
