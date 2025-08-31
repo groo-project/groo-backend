@@ -1,5 +1,6 @@
 package com.x1.groo.forest.mate.command.application.scheduler;
 
+import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +16,21 @@ import java.time.LocalDateTime;
 public class InviteCleanupScheduler {
 
     private final ForestInviteRepository forestInviteRepository;
+    private final EmailRepository emailRepository;
 
     @Transactional
-    @Scheduled(cron = "0 5 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
     public void purge() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(1); // 만료 1일 뒤 삭제
-        int purged = forestInviteRepository.deleteExpired(cutoff);
-        log.info("purged expired invites (cutoff={}): {}", cutoff, purged);
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(1);
+
+        // 초대코드 삭제
+        int forestInvitePurged = forestInviteRepository.deleteExpired(cutoff);
+
+        // 이메일 인증코드 삭제
+        int emailPurged = emailRepository.deleteExpired(cutoff);
+
+        log.info("purged expired invites (cutoff={}): {}", cutoff, forestInvitePurged);
+        log.info("purged expired email (cutoff={}): {}", cutoff, emailPurged);
 
     }
 }
