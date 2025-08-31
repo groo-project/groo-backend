@@ -1,4 +1,4 @@
-package com.x1.groo.forest.mate.command.application.scheduler;
+package com.x1.groo.common.scheduler;
 
 import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
