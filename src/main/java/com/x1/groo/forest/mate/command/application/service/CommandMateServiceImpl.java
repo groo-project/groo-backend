@@ -66,7 +66,7 @@ public class CommandMateServiceImpl implements CommandMateService {
         if(!forestRepository.existsById(forestId))throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
 
         for(int i=0; i<3; i++) {
-            String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
+            String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,8);
 
             ForestInviteEntity entity = new ForestInviteEntity();
             entity.setForestId(forestId);
