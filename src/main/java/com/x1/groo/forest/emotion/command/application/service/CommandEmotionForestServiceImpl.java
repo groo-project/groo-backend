@@ -2,6 +2,10 @@ package com.x1.groo.forest.emotion.command.application.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.common.sse.SseEventPublisher;
+import com.x1.groo.common.sse.SseEventType;
+import com.x1.groo.common.sse.payload.ItemPlacedPayload;
+import com.x1.groo.common.sse.payload.UserLeftPayload;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -35,6 +39,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     private final UserRepository userRepository;
     private final MailboxRepository mailboxRepository;
     private final BackgroundRepository backgroundRepository;
+    private final SseEventPublisher sseEventPublisher;
 
     /* 아이템 회수 */
     @Transactional
@@ -132,6 +137,9 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         placement.setHeight(requestPlacementVO.getItemHeight());
         placement.setWidth(requestPlacementVO.getItemWidth());
         placement.setZIndex(requestPlacementVO.getItemZIndex());
+
+        // 브로드캐스트
+        sseEventPublisher.publish(forestId, SseEventType.ITEM_PLACED,new ItemPlacedPayload(userId, forestId));
 
         placementRepository.save(placement);
     }
