@@ -4,6 +4,7 @@ import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.common.sse.SseEventPublisher;
 import com.x1.groo.common.sse.SseEventType;
+import com.x1.groo.common.sse.payload.ForestUpdatedPayload;
 import com.x1.groo.common.sse.payload.ItemPlacedPayload;
 import com.x1.groo.common.sse.payload.UserLeftPayload;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
@@ -286,5 +287,8 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
 
         forest.setName(newName);
         forestRepository.save(forest);
+
+        // 브로드캐스트
+        sseEventPublisher.publish(forestId, SseEventType.FOREST_UPDATED, new ForestUpdatedPayload(userId, forestId, newName));
     }
 }
