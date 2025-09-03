@@ -1,6 +1,7 @@
 package com.x1.groo.common.sse;
 
 import jakarta.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -75,5 +76,30 @@ public class SseEmitterRegistry {
     public List<SseEmitter> getAll(int forestId) {
         return byForest.getOrDefault(forestId, new CopyOnWriteArrayList<>());
 
+    }
+
+    // ====== ★ 추가: 서버 내려갈 때 모든 연결을 “먼저” 닫아주는 메서드 ======
+    public void completeAll(String reason) {
+        byForest.forEach((forestId, list) -> {
+            // 복사본으로 안전 반복
+            for (SseEmitter em : new ArrayList<>(list)) {
+                try {
+                    // 종료 알림 한 번 날리고
+                    try {
+                        em.send(SseEmitter.event()
+                                .name("server_shutdown")
+                                .data(reason == null ? "server shutting down" : reason));
+                    } catch (IOException ignore) {
+                        // 보내다 실패해도 그냥 닫기
+                    }
+                    // 깔끔 종료
+                    em.complete();
+                } catch (Exception ignored) {
+                } finally {
+                    remove(forestId, em);
+                }
+            }
+        });
+        byForest.clear();
     }
 }
