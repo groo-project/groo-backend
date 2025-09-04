@@ -21,15 +21,6 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
-    @Operation(summary = "금일 일기 작성 여부 반환")
-    @GetMapping("/today/written")
-    public ResponseEntity<Boolean> isTodayDiaryWritten(@AuthenticationPrincipal CustomUserDetails user) {
-        int userId = user.getUserId();
-        boolean isTodayDiaryWritten = diaryService.isTodayDiaryWritten(userId);
-
-        return ResponseEntity.ok(isTodayDiaryWritten);
-    }
-
     @Operation(summary = "일기 등록")
     @PostMapping
     public ResponseEntity<DiaryResponseDTO> create(

@@ -8,8 +8,6 @@ import java.util.List;
  * 사용자 ID를 파라미터로 받아 일기를 생성
  */
 public interface DiaryService {
-    /** 오늘 일기 작성 여부 확인 */
-    boolean isTodayDiaryWritten(int userId);
     /** 정식 등록 (AI 감정분석, 날씨, 상위2개 감정 저장) */
     DiaryResponseDTO createDiary(DiaryRequestDTO request, int userId);
     /** 임시 저장 (AI 호출 없이 content만 저장) */
