@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DiaryServiceImpl implements DiaryService {
 
+    private static final int MAX_DIARY_CONTENT_LENGTH = 1050;
+    private static final int DIARY_WRITE_LIMIT_DAYS = 2;
+
     private final DiaryRepository diaryRepo;
     private final DiaryEmotionRepository emotionRepo;
     private final EmotionService emotionService;
@@ -45,28 +48,11 @@ public class DiaryServiceImpl implements DiaryService {
         LocalDateTime createdAt = req.getCreatedAt();
 
         LocalDate createdDate = createdAt.toLocalDate();
-        LocalDate today = LocalDate.now();
-        LocalDate twoDaysAgo = today.minusDays(2);
 
         // 유효성 검사
-        // 길이 제한
-        if (req.getContent() != null && req.getContent().length() >= 1050) {
-            throw new CustomException(ErrorCode.DIARY_LENGTH_EXCEEDED);
-        }
-
-        // 날짜 제한
-        if (createdDate.isBefore(twoDaysAgo) || createdDate.isAfter(today)) {
-            throw new CustomException(ErrorCode.DIARY_WRITE_DATE_NOW_ALLOWED);
-        }
-
-        // 권한 체크
-        boolean owner = forestRepo.findById(forestId)
-                .map(f -> f.getUser().getId() == userId)
-                .orElse(false);
-        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
-        if (!(owner || shared)) {
-            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
-        }
+        validateDiaryLength(req.getContent());
+        validateDiaryDate(createdDate);
+        validateDiaryPermission(userId, forestId);
 
         ///   [실제 사용 기능   ///
 //        // AI 감정 분석
@@ -153,6 +139,36 @@ public class DiaryServiceImpl implements DiaryService {
                 req.getContent(),
                 emotionItems
         );
+    }
+
+    // 일기 길이 제한
+    private void validateDiaryLength(String content) {
+        if (content != null && content.length() >= MAX_DIARY_CONTENT_LENGTH) {
+            throw new CustomException(ErrorCode.DIARY_LENGTH_EXCEEDED);
+        }
+    }
+
+    // 작성 가능 날짜 (2일전 ~ 오늘까지 허용)
+    private void validateDiaryDate(LocalDate createdDate) {
+        LocalDate today = LocalDate.now();
+        LocalDate twoDaysAgo = today.minusDays(DIARY_WRITE_LIMIT_DAYS);
+
+        if (createdDate.isBefore(twoDaysAgo) || createdDate.isAfter(today)) {
+            throw new CustomException(ErrorCode.DIARY_WRITE_DATE_NOW_ALLOWED);
+        }
+    }
+
+    // 권한 검사 (소유자 혹은 공유 사용자만 허용)
+    private void validateDiaryPermission(int userId, int forestId) {
+        boolean owner = forestRepo.findById(forestId)
+                .map(f -> f.getUser().getId() == userId)
+                .orElse(false);
+
+        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
+
+        if (!(owner || shared)) {
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
+        }
     }
 
     @Override
