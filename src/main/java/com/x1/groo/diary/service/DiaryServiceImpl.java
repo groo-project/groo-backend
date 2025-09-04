@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DiaryServiceImpl implements DiaryService {
 
+    private static final int MAX_DIARY_CONTENT_LENGTH = 1050;
+    private static final int DIARY_WRITE_LIMIT_DAYS = 2;
+
     private final DiaryRepository diaryRepo;
     private final DiaryEmotionRepository emotionRepo;
     private final EmotionService emotionService;
@@ -36,41 +40,21 @@ public class DiaryServiceImpl implements DiaryService {
     private final ItemService itemService;
 
     @Override
-    public boolean isTodayDiaryWritten(int userId) {
-        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
-        LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
-
-        return diaryRepo.existsByUserIdAndIsPublishedTrueAndUpdatedAtBetween(
-                userId,
-                startOfDay,
-                endOfDay
-        );
-    }
-
-    @Override
     @Transactional
     public DiaryResponseDTO createDiary(DiaryRequestDTO req, int userId) {
-
-        // 배포 시 적용
-//        if (isTodayDiaryWritten(userId)) {
-//            throw new CustomException(ErrorCode.DIARY_ALREADY_WRITTEN);
-//        }
 
         int forestId = req.getForestId();
         int categoryId = req.getCategoryId();
         LocalDateTime createdAt = req.getCreatedAt();
-//
-//
-//        // 권한 체크
-//        boolean owner = forestRepo.findById(forestId)
-//                .map(f -> f.getUser().getId() == userId)
-//                .orElse(false);
-//        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
-//        if (!(owner || shared)) {
-//            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
-//        }
-//
-//        ///   [실제 사용 기능   ///
+
+        LocalDate createdDate = createdAt.toLocalDate();
+
+        // 유효성 검사
+        validateDiaryLength(req.getContent());
+        validateDiaryDate(createdDate);
+        validateDiaryPermission(userId, forestId);
+
+        ///   [실제 사용 기능   ///
 //        // AI 감정 분석
 //        EmotionResponseDTO aiRes = emotionService.analyzeEmotion(
 //                new EmotionRequestDTO(req.getContent())
@@ -155,6 +139,36 @@ public class DiaryServiceImpl implements DiaryService {
                 req.getContent(),
                 emotionItems
         );
+    }
+
+    // 일기 길이 제한
+    private void validateDiaryLength(String content) {
+        if (content != null && content.length() >= MAX_DIARY_CONTENT_LENGTH) {
+            throw new CustomException(ErrorCode.DIARY_LENGTH_EXCEEDED);
+        }
+    }
+
+    // 작성 가능 날짜 (2일전 ~ 오늘까지 허용)
+    private void validateDiaryDate(LocalDate createdDate) {
+        LocalDate today = LocalDate.now();
+        LocalDate twoDaysAgo = today.minusDays(DIARY_WRITE_LIMIT_DAYS);
+
+        if (createdDate.isBefore(twoDaysAgo) || createdDate.isAfter(today)) {
+            throw new CustomException(ErrorCode.DIARY_WRITE_DATE_NOW_ALLOWED);
+        }
+    }
+
+    // 권한 검사 (소유자 혹은 공유 사용자만 허용)
+    private void validateDiaryPermission(int userId, int forestId) {
+        boolean owner = forestRepo.findById(forestId)
+                .map(f -> f.getUser().getId() == userId)
+                .orElse(false);
+
+        boolean shared = sharedForestRepo.existsByUserIdAndForestId(userId, forestId);
+
+        if (!(owner || shared)) {
+            throw new CustomException(ErrorCode.DIARY_ACCESS_DENIED);
+        }
     }
 
     @Override
