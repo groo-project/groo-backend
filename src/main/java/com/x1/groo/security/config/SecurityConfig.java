@@ -63,7 +63,7 @@ public class SecurityConfig  {
                                 "/api/image/**",
                                 "/error",
                                 "/api/auth/refresh",
-                                "/api/sse")
+                                "/api/sse/**")
                         .permitAll()
 
                         // 로그인 필요
