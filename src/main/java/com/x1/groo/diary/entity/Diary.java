@@ -18,9 +18,6 @@ public class Diary {
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    @Column(name = "is_published", nullable = false)
-    private Boolean isPublished;
-
     @Column(name = "weather")
     private String weather;
 

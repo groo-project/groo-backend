@@ -7,11 +7,4 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DiaryRepository extends JpaRepository<Diary, Integer> {
-    List<Diary> findAllByUserIdAndIsPublishedFalse(int userId);
-
-    boolean existsByUserIdAndIsPublishedTrueAndUpdatedAtBetween(
-            Integer userId,
-            LocalDateTime startOfDay,
-            LocalDateTime endOfDay
-    );
 }
