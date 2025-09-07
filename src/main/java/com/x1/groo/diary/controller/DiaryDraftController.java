@@ -36,7 +36,7 @@ public class DiaryDraftController {
     }
 
     @Operation(summary = "총 임시 저장 개수 반환")
-    @GetMapping("/counts")
+    @GetMapping("/count")
     public ResponseEntity<Integer> getDraftCount(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
