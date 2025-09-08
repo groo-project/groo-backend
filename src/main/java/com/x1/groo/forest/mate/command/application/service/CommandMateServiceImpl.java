@@ -2,6 +2,9 @@ package com.x1.groo.forest.mate.command.application.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.common.sse.SseEventPublisher;
+import com.x1.groo.common.sse.payload.UserJoinedPayload;
+import com.x1.groo.common.sse.payload.UserLeftPayload;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -10,13 +13,15 @@ import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
 import com.x1.groo.forest.mate.command.domain.aggregate.ForestInviteEntity;
 import com.x1.groo.forest.mate.command.domain.aggregate.SharedForestEntity;
+import com.x1.groo.common.sse.SseEventType;
 import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,11 +29,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import static com.x1.groo.common.sse.SseEventType.USER_JOINED;
 import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.REVOKED;
 import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.USED;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommandMateServiceImpl implements CommandMateService {
 
     private final SharedForestRepository sharedForestRepository;
@@ -36,6 +43,7 @@ public class CommandMateServiceImpl implements CommandMateService {
     private final UserRepository userRepository;
     private final BackgroundRepository backgroundRepository;
     private final ForestInviteRepository forestInviteRepository;
+    private final SseEventPublisher sseEventPublisher;
 
     // 우정의 숲 탈퇴
     @Transactional
@@ -55,6 +63,8 @@ public class CommandMateServiceImpl implements CommandMateService {
             forestRepository.deleteById(forestId);
         }
 
+        // 브로드캐스트
+        sseEventPublisher.publish(forestId, SseEventType.USER_LEFT,new UserLeftPayload(userId, forestId));
     }
 
 
@@ -111,11 +121,11 @@ public class CommandMateServiceImpl implements CommandMateService {
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
         }
 
-        // 정원은 Lock 걸고 카운트
         if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {
             throw new CustomException(ErrorCode.FOREST_ALREADY_ACCEPTED_INVITE);
         }
 
+//        ForestEntity lockedForest = forestRepository.lockById(forestId); // 여기서 잠금
         int count = sharedForestRepository.countByForestIdForUpdate(forestId);
         if (count >= 4) {
             throw new CustomException(ErrorCode.FOREST_FULL);
@@ -125,10 +135,38 @@ public class CommandMateServiceImpl implements CommandMateService {
         SharedForestEntity sharedForest = new SharedForestEntity(userId, forestId);
         sharedForestRepository.save(sharedForest);
 
+//        Optional<UserEntity> user = userRepository.findById(userId);
+
+        UserEntity  user = userRepository.findById(userId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String nickname = user.getNickname();
+
+        // 브로드캐스트
+        sseEventPublisher.publish(forestId, USER_JOINED,new UserJoinedPayload(userId, nickname));
+
         return forestId;
 
     }
 
+
+    @Override
+    public void joinForest(int userId, int forestId, String nickname) {
+        if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {
+            return; // 이미 참가
+        }
+        log.info("이미 참여한 사용자가 아닙니다." );
+
+        // DB 갱신 (예: 매핑 추가)
+        sharedForestRepository.save(new SharedForestEntity(userId, forestId));
+
+        // 커밋 "후"에만 전송되도록 예약 (롤백되면 전송 안 함)
+        sseEventPublisher.publishAfterCommit(
+                forestId,
+                USER_JOINED,
+                new UserJoinedPayload(userId, nickname) // payload는 작고 명확하게
+        );
+    }
 
     // 우정의 숲 생성
     @Override

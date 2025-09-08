@@ -10,4 +10,6 @@ public interface CommandMateService {
     void quit(int userId, int forestId);
 
     void createMateForest(int userId, CreateMateForestRequest request);
+
+    void joinForest(int userId, int forestId, String nickname);
 }

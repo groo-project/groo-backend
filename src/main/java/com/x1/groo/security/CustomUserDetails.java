@@ -26,7 +26,7 @@ public class CustomUserDetails implements UserDetails {
 
     // DTO -> UserDetails 헬퍼
     public static CustomUserDetails from(UserDTO dto) {
-        return new CustomUserDetails(dto); // ✅ 빌더 사용 안 함
+        return new CustomUserDetails(dto);
     }
 
 

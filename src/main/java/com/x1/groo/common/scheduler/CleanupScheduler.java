@@ -1,4 +1,4 @@
-package com.x1.groo.forest.mate.command.application.scheduler;
+package com.x1.groo.common.scheduler;
 
 import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class InviteCleanupScheduler {
+public class CleanupScheduler {
 
     private final ForestInviteRepository forestInviteRepository;
     private final EmailRepository emailRepository;
