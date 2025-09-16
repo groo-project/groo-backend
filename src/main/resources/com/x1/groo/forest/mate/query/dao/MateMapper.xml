@@ -25,7 +25,6 @@
           JOIN forest f ON d.forest_id = f.id
           LEFT JOIN shared_forest sf ON f.id = sf.forest_id
          WHERE f.id = #{forestId}
-           AND d.is_published = 1
            AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
     </select>
     
@@ -42,7 +41,6 @@
              , d.created_at
           FROM diary d
          WHERE d.forest_id = #{forestId}
-           AND d.is_published = 1
            AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
     </select>
     
