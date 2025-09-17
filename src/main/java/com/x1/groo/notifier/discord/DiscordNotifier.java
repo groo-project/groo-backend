@@ -1,7 +1,8 @@
-package com.x1.groo.discord;
+package com.x1.groo.notifier.discord;
 
-import com.x1.groo.discord.dto.DiscordEmbedDTO;
-import com.x1.groo.discord.dto.DiscordPayloadDTO;
+import com.x1.groo.notifier.discord.dto.DiscordEmbedDTO;
+import com.x1.groo.notifier.discord.dto.DiscordPayloadDTO;
+import com.x1.groo.notifier.Notifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
-@Component
+@Component("discordNotifier")
 @RequiredArgsConstructor
-public class DiscordNotifier {
+public class DiscordNotifier implements Notifier {
 
     private final RestTemplate restTemplate;
 
@@ -27,6 +28,7 @@ public class DiscordNotifier {
      * @param title   메시지 제목
      * @param message 상세 내용
      */
+    @Override
     public void sendError(String title, String message) {
         try {
 

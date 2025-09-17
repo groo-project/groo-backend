@@ -1,17 +1,20 @@
 package com.x1.groo.common.exception;
 
-import com.x1.groo.discord.DiscordNotifier;
+import com.x1.groo.notifier.Notifier;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-@RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    private final DiscordNotifier discordNotifier;
+    private final Notifier notifier;
+
+    public GlobalExceptionHandler(@Qualifier("discordNotifier") Notifier notifier) {
+        this.notifier = notifier;
+    }
 
     private boolean isSse(HttpServletRequest req) {
         String accept = req.getHeader("Accept");
@@ -25,7 +28,7 @@ public class GlobalExceptionHandler {
         String cause = ex.getCause() != null ? ex.getCause().toString() : "";
 
         if (ex.getCause() != null) {
-            discordNotifier.sendError(
+            notifier.sendError(
                     "Custom Exception",
                     "에러 코드: " + errorCode.getCode() +
                             "\n메시지: " + errorCode.getMessage() +
@@ -48,7 +51,7 @@ public class GlobalExceptionHandler {
 
         ErrorCode errorCode = ErrorCode.INTERNAL_ERROR;
 
-        discordNotifier.sendError(
+        notifier.sendError(
                 "Unhandled Exception",
                 ex.toString()
         );

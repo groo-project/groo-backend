@@ -1,4 +1,4 @@
-package com.x1.groo.discord.dto;
+package com.x1.groo.notifier.discord.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
