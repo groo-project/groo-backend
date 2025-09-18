@@ -27,9 +27,6 @@ public class SseEmitterRegistry {
     public SseEmitterRegistry(SseHeartbeatProperties sseHeartbeatProperties) {
         this.sseHeartbeatProperties = sseHeartbeatProperties;
     }
-    //    // 하트비트 주기/아이들 기준 (프로퍼티로도 빼기 좋음)
-//    private static final long HEARTBEAT_PERIOD_MS = 30_000;   // 15초마다 검사
-//    private static final long HEARTBEAT_IDLE_MS   = 20_000;  //  20초 이상 조용하면 핑
 
     // 구독 연결
     public SseEmitter add(int forestId, long timeoutMillis) {
