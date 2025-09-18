@@ -19,7 +19,7 @@ public class CleanupScheduler {
     private final EmailRepository emailRepository;
 
     @Transactional
-    @Scheduled(cron = "0 */15 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void purge() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(1);
 
