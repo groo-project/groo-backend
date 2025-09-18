@@ -6,6 +6,7 @@ import com.x1.groo.auth.command.util.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,7 @@ public class AuthCommandController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest req,
-                                     HttpServletResponse res,
+    public ResponseEntity<?> refresh(HttpServletResponse res,
                                      @CookieValue(value = "refreshToken", required = false) String rt) {
 
         try {
@@ -43,5 +43,15 @@ public class AuthCommandController {
         }
 
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse res) {
+
+        CookieUtil.clearRefreshCookie(res);
+        CookieUtil.clearAccessCookie(res);
+
+        return ResponseEntity.ok().build();
+    }
+
 
 }
