@@ -1,5 +1,6 @@
 package com.x1.groo.diary.controller;
 
+import com.x1.groo.diary.dto.DiaryDraftInfoResponseDTO;
 import com.x1.groo.diary.dto.DiaryDraftListResponseDTO;
 import com.x1.groo.diary.dto.DiaryDraftRequestDTO;
 import com.x1.groo.diary.dto.DiaryDraftUpdateRequestDTO;
@@ -26,13 +27,13 @@ public class DiaryDraftController {
 
     @Operation(summary = "해당 날짜 일기 임시 저장 여부")
     @GetMapping("/{date}")
-    public ResponseEntity<Boolean> isDraftExist(
+    public ResponseEntity<DiaryDraftInfoResponseDTO> isDraftExist(
             @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
             ) {
-        boolean exists = diaryDraftService.existsDraftByDate(user.getUserId(), date);
+        DiaryDraftInfoResponseDTO draft = diaryDraftService.existsDraftByDate(user.getUserId(), date);
 
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(draft);
     }
 
     @Operation(summary = "총 임시 저장 개수 반환")
