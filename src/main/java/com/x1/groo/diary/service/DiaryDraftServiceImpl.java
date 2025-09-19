@@ -24,7 +24,7 @@ public class DiaryDraftServiceImpl implements DiaryDraftService {
     @Override
     @Transactional
     public DiaryDraftInfoResponseDTO existsDraftByDate(int userId, LocalDate date) {
-        return diaryDraftRepository.findIdByUserIdAndDiaryDate(userId, date)
+        return diaryDraftRepository.findByUserIdAndDiaryDate(userId, date)
                 .map(d -> new DiaryDraftInfoResponseDTO(
                         d.getId(),
                         d.getContent(),

@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 @AllArgsConstructor
 @Getter
-@Setter
 public class DiaryDraftInfoResponseDTO {
     private Integer draftId;
     private String content;
