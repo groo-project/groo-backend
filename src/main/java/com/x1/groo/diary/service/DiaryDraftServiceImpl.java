@@ -2,6 +2,7 @@ package com.x1.groo.diary.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.diary.dto.DiaryDraftInfoResponseDTO;
 import com.x1.groo.diary.dto.DiaryDraftListResponseDTO;
 import com.x1.groo.diary.dto.DiaryDraftRequestDTO;
 import com.x1.groo.diary.dto.DiaryDraftUpdateRequestDTO;
@@ -22,8 +23,13 @@ public class DiaryDraftServiceImpl implements DiaryDraftService {
 
     @Override
     @Transactional
-    public boolean existsDraftByDate(int userId, LocalDate date) {
-        return diaryDraftRepository.existsByUserIdAndDiaryDate(userId, date);
+    public DiaryDraftInfoResponseDTO existsDraftByDate(int userId, LocalDate date) {
+        return diaryDraftRepository.findByUserIdAndDiaryDate(userId, date)
+                .map(d -> new DiaryDraftInfoResponseDTO(
+                        d.getId(),
+                        d.getContent(),
+                        d.getDiaryDate()
+                )).orElse(new DiaryDraftInfoResponseDTO(null, null, null));
     }
 
     @Override

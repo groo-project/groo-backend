@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DiaryDraftRepository extends JpaRepository<DiaryDraft, Integer> {
-    boolean existsByUserIdAndDiaryDate(int userId, LocalDate date);
+    Optional<DiaryDraft> findByUserIdAndDiaryDate(@Param("userId") int userId, @Param("date") LocalDate date);
 
     int countByUserId(int userId);
 
