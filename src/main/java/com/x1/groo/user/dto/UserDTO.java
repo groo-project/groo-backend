@@ -41,6 +41,7 @@ public class UserDTO {
                 .id(e.getId())
                 .email(e.getEmail())
                 .nickname(e.getNickname())
+                .role(e.getRole().name())
                 .build();
 }
 
