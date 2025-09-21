@@ -1,5 +1,6 @@
 package com.x1.groo.security.config;
 
+import java.util.Arrays;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,16 +14,14 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173");
+        config.setAllowedOriginPatterns(
+                Arrays.asList("http://localhost:5173", "https://groo.cloud", "https://www.groo.cloud")
+        );
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
-        // ★ 프론트에서 Authorization 헤더를 읽을 수 있게 노출
+        // 프론트에서 Authorization 헤더를 읽을 수 있게 노출
         config.addExposedHeader("Authorization");
-
-        // todo : 쿠키 기반을 쓰면 CORS 설정에서 credentials: true 허용 필요.
-        //  예: Spring Security → config.setAllowCredentials(true)
-        config.setAllowCredentials(true);
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
