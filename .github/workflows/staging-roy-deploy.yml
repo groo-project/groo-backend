@@ -148,24 +148,16 @@ jobs:
 
       - name: Deploy via SSM
         run: |
-          # JAR 다운로드 및 디렉토리 준비
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy groo app" \
-            --parameters "commands=[
-              \"mkdir -p /home/ec2-user\",
-              \"rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar\",
-              \"aws s3 cp s3://$S3_JAR_BUCKET_NAME/groo-0.0.1-SNAPSHOT.jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar --region $EC2_REGION\"
-            ]"
-
-          # 앱 재시작
-          aws ssm send-command \
-            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
-            --document-name "AWS-RunShellScript" \
-            --comment "Restart groo app" \
             --parameters 'commands=[
-              "PID=$(ps aux | grep groo-0.0.1-SNAPSHOT.jar | grep -v grep | awk '\''{print $2}'\'')",
+              "mkdir -p /home/ec2-user",
+              "rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*",
+              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/ /home/ec2-user/ --recursive --exclude \"*\" --include \"groo-0.0.1-SNAPSHOT.jar*\" --region '"$EC2_REGION"'",
+              "JAR_FILE=$(ls /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*)",
+              "PID=$(ps aux | grep \"$JAR_FILE\" | grep -v grep | awk '\''{print $2}'\'')",
               "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
-              "nohup java -jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &"
+              "nohup java -jar \"$JAR_FILE\" > /dev/null 2>&1 &"
             ]'
