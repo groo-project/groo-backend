@@ -18,7 +18,6 @@ import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -149,7 +148,7 @@ public class CommandMateServiceImpl implements CommandMateService {
 
     }
 
-
+    @Transactional
     @Override
     public void joinForest(int userId, int forestId, String nickname) {
         if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {

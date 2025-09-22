@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
             description = "accessToken 만료 시 refreshToken을 이용해서 accessToken 재발급"
     )
     @Override
+    @Transactional
     public RefreshResult refresh(String rt) {
 
         Jws<Claims> jws = jwtUtil.parserClaimsJws(rt);
