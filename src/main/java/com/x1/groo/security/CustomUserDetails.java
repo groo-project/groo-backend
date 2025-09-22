@@ -1,7 +1,6 @@
 package com.x1.groo.security;
 
 import com.x1.groo.user.dto.UserDTO;
-import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,8 +39,6 @@ public class CustomUserDetails implements UserDetails {
         return user.getPassword();
     }
 
-
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
@@ -58,6 +55,10 @@ public class CustomUserDetails implements UserDetails {
 
     public int getForestId() {
         return user.getForestId();
+    }
+
+    public String getNickname() {
+        return user.getNickname();
     }
 
     @Override

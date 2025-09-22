@@ -46,8 +46,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static java.awt.SystemColor.info;
-
 @Service
 @Builder
 @Slf4j
@@ -184,7 +182,7 @@ public class UserServiceImpl implements UserService {
 
 
         //  AT 발급
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), user.getNickname(), roles);
 
         //  RT 발급 & 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());

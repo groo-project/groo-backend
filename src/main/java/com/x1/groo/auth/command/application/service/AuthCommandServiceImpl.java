@@ -10,15 +10,12 @@ import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.sql.Ref;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,7 +88,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), roles);
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), user.getNickname(), roles);
         return new RefreshResult(accessToken, newRt, jwtUtil.getRefreshTtl());
     }
 }
