@@ -1,8 +1,6 @@
 package com.x1.groo.security.util;
 
-import com.x1.groo.auth.command.application.aggregate.RefreshToken;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
-import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.user.dto.UserDTO;
 import io.jsonwebtoken.*;
@@ -17,7 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
 
 import java.security.Key;
 import java.time.Duration;
@@ -45,7 +42,7 @@ public class JwtUtil {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public String generateAccessToken(int userId, String email, List<String> roles) {
+    public String generateAccessToken(int userId, String email, String nickname, List<String> roles) {
         Date now = new Date();
 
         // 권한 문자열 목록
@@ -58,6 +55,7 @@ public class JwtUtil {
                 .claim("email", email)
                 .claim("auth", roles)
                 .claim("typ", "AT")
+                .claim("nickname", nickname)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + accessExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS512)
