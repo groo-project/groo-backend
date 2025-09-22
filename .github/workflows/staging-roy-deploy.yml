@@ -153,11 +153,11 @@ jobs:
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy groo app" \
-            --parameters 'commands=[
-              "mkdir -p /home/ec2-user",
-              "rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar",
-              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/groo-0.0.1-SNAPSHOT.jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar"
-            ]'
+            --parameters "commands=[
+              \"mkdir -p /home/ec2-user\",
+              \"rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar\",
+              \"aws s3 cp s3://$S3_JAR_BUCKET_NAME/groo-0.0.1-SNAPSHOT.jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar --region $EC2_REGION\"
+            ]"
 
           # 앱 재시작
           aws ssm send-command \
