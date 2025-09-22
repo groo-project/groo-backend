@@ -1,8 +1,6 @@
 package com.x1.groo.user.dto;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.vo.LoginResponseVO;
-import com.x1.groo.user.aggregate.Role;
 import com.x1.groo.user.aggregate.UserEntity;
 import lombok.*;
 

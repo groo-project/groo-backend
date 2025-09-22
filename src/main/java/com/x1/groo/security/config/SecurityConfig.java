@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -47,11 +48,11 @@ public class SecurityConfig  {
                         .requestMatchers("/api/logs/**").hasRole("ADMIN")
 
                         // health 체크
-//                        .requestMatchers("/health/**").permitAll()
                          .requestMatchers("/", "/health/**", "/healthz", "/actuator/health").permitAll()
 
-
                          .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
 
                         // swagger
                         .requestMatchers("/swagger",

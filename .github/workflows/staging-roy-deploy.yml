@@ -1,0 +1,163 @@
+name: Staging Roy Deploy
+
+on:
+  push:
+    branches:
+      - staging/roy
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      MAIL_USERNAME: ${{ secrets.R_MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.R_MAIL_PASSWORD }}
+
+      SERVER_PORT: ${{ secrets.R_SERVER_PORT }}
+
+      TOKEN_SECRET: ${{ secrets.R_TOKEN_SECRET }}
+      TOKEN_ACCESS_EXP: ${{ secrets.R_TOKEN_ACCESS_EXP }}
+      TOKEN_REFRESH_EXP: ${{ secrets.R_TOKEN_REFRESH_EXP }}
+
+      S3_BUCKET: ${{ secrets.R_S3_BUCKET }}
+      S3_REGION: ${{ secrets.R_S3_REGION }}
+      S3_ACCESS_KEY: ${{ secrets.R_S3_ACCESS_KEY }}
+      S3_SECRET_KEY: ${{ secrets.R_S3_SECRET_KEY }}
+
+      OPEN_API_KEY: ${{ secrets.R_OPEN_API_KEY }}
+
+      DB_CLASS_NAME: ${{ secrets.R_DB_CLASS_NAME }}
+      DB_URL: ${{ secrets.R_DB_URL }}
+      DB_USERNAME: ${{ secrets.R_DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.R_DB_PASSWORD }}
+
+      REDIS_HOST: ${{ secrets.R_REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.R_REDIS_PORT }}
+
+      DISCORD_WEBHOOK_URL: ${{ secrets.R_DISCORD_WEBHOOK_URL }}
+
+      EC2_REGION: ${{ secrets.R_EC2_REGION }}
+      EC2_ACCESS_KEY: ${{ secrets.R_EC2_ACCESS_KEY }}
+      EC2_SECRET_ACCESS_KEY: ${{ secrets.R_EC2_SECRET_ACCESS_KEY }}
+      EC2_INSTANCE_ID: ${{ secrets.R_EC2_INSTANCE_ID }}
+      S3_JAR_BUCKET_NAME: ${{ secrets.R_S3_JAR_BUCKET_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Create temporary application.yml
+        run: |
+          cat <<EOT > src/main/resources/application.yml
+          spring:
+            profiles:
+              active: prod
+            mvc:
+              async:
+                request-timeout: -1
+            mail:
+              host: smtp.gmail.com
+              port: 587
+              username: ${MAIL_USERNAME}
+              password: ${MAIL_PASSWORD}
+              properties:
+                mail:
+                  smtp:
+                    auth: true
+                    starttls:
+                      enable: true
+                      required: true
+                    connection timeout: 5000
+                    timeout: 5000
+                    write timeout: 5000
+              auth-code-expiration-millis: 1800000
+
+          server:
+            port: ${SERVER_PORT}
+
+          token:
+            secret: ${TOKEN_SECRET}
+            access_expiration_time: ${TOKEN_ACCESS_EXP}
+            refresh_expiration_time: ${TOKEN_REFRESH_EXP}
+
+          cloud:
+            aws:
+              s3:
+                bucket: ${S3_BUCKET}
+              stack.auto: false
+              region.static: ${S3_REGION}
+              credentials:
+                accessKey: ${S3_ACCESS_KEY}
+                secretKey: ${S3_SECRET_KEY}
+
+          openai:
+            api-key: ${OPEN_API_KEY}
+
+          sse:
+            heartbeat:
+              period-ms: 15000
+              idle-ms: 20000
+          ---
+          spring:
+            config:
+              activate:
+                on-profile: prod
+
+            jpa:
+              hibernate:
+                ddl-auto: none
+              show-sql: true
+              properties:
+                hibernate:
+                  format_sql: true
+
+            datasource:
+              driver-class-name: ${DB_CLASS_NAME}
+              url: ${DB_URL}
+              username: ${DB_USERNAME}
+              password: ${DB_PASSWORD}
+
+            data:
+              redis:
+                host: ${REDIS_HOST}
+                port: ${REDIS_PORT}
+                duration: 600
+
+          discord:
+            webhook-url: ${DISCORD_WEBHOOK_URL}
+          EOT
+
+      - name: Build Jar
+        run: ./gradlew clean build -x test
+
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id $EC2_ACCESS_KEY
+          aws configure set aws_secret_access_key $EC2_SECRET_ACCESS_KEY
+          aws configure set region $EC2_REGION
+
+      - name: Upload JAR to S3
+        run: |
+          aws s3 cp build/libs/groo-0.0.1-SNAPSHOT.jar s3://$S3_JAR_BUCKET_NAME/ --region $S3_REGION
+
+      - name: Deploy via SSM
+        run: |
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy groo app" \
+            --parameters 'commands=[
+              "mkdir -p /home/ec2-user",
+              "rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*",
+              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/ /home/ec2-user/ --recursive --exclude \"*\" --include \"groo-0.0.1-SNAPSHOT.jar*\" --region '"$EC2_REGION"'",
+              "JAR_FILE=$(ls /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*)",
+              "PID=$(ps aux | grep \"$JAR_FILE\" | grep -v grep | awk '\''{print $2}'\'')",
+              "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
+              "nohup java -jar \"$JAR_FILE\" > /dev/null 2>&1 &"
+            ]'

@@ -19,7 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
+import java.util.Map;
 
 @Tag(name = "유저", description = "회원가입 및 로그인 기능을 제공합니다.")
 @Slf4j
@@ -47,28 +47,20 @@ public class UserController {
     @Operation(summary = "로그인")
     @PostMapping(value = "/login",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<LoginDTO> login(@RequestBody LoginRequestVO loginRequestVO,
+    public ResponseEntity<?> login(@RequestBody LoginRequestVO loginRequestVO,
                                           HttpServletResponse res) {
 
         LoginDTO login = userService.login(loginRequestVO);
 
         LoginUserDTO user = login.getUser();
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getEmail(),login.getRoles());
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getEmail(), user.getNickname(), login.getRoles());
         String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
 
         CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
         CookieUtil.setAccessCookie(res, accessToken, jwtUtil.getAccessTtl());
 
-        List<String> roles = login.getRoles();
-
-        LoginDTO response = LoginDTO.builder()
-                .user(user)
-                .accessToken(accessToken)
-                .roles(roles)
-                .build();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(Map.of("accessToken", accessToken));
     }
 
 

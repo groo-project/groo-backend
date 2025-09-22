@@ -15,7 +15,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOriginPatterns(
-                Arrays.asList("http://localhost:5173", "https://groo.cloud", "https://www.groo.cloud")
+                Arrays.asList("http://localhost:5173", "https://groo.cloud", "https://groogarden.com")
         );
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
