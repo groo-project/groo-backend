@@ -36,9 +36,11 @@ jobs:
 
       DISCORD_WEBHOOK_URL: ${{ secrets.R_DISCORD_WEBHOOK_URL }}
 
-      EC2_KEY: ${{ secrets.R_EC2_KEY }}
-      EC2_USER: ${{ secrets.R_EC2_USER }}
-      EC2_HOST: ${{ secrets.R_EC2_HOST }}
+      EC2_REGION: ${{ secrets.R_EC2_REGION }}
+      EC2_ACCESS_KEY: ${{ secrets.R_EC2_ACCESS_KEY }}
+      EC2_SECRET_ACCESS_KEY: ${{ secrets.R_EC2_SECRET_ACCESS_KEY }}
+      EC2_INSTANCE_ID: ${{ secrets.R_EC2_INSTANCE_ID }}
+      S3_JAR_BUCKET_NAME: ${{ secrets.R_S3_JAR_BUCKET_NAME }}
 
     steps:
       - name: Checkout
@@ -134,20 +136,36 @@ jobs:
       - name: Build Jar
         run: ./gradlew clean build -x test
 
-      - name: Decode EC2 PEM Key
+      - name: Configure AWS CLI
         run: |
-          echo "${EC2_KEY}" | base64 --decode > groo-key.pem
-          chmod 600 groo-key.pem
+          aws configure set aws_access_key_id $EC2_ACCESS_KEY
+          aws configure set aws_secret_access_key $EC2_SECRET_ACCESS_KEY
+          aws configure set region $EC2_REGION
 
-      - name: Copy Jar to EC2
-        run: scp -i groo-key.pem build/libs/groo-0.0.1-SNAPSHOT.jar $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-
-      - name: Restart App on EC2
+      - name: Upload JAR to S3
         run: |
-          ssh -i groo-key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            PID=$(ps aux | grep groo-0.0.1-SNAPSHOT.jar | grep -v grep | awk '{print $2}')
-            if [ -n "$PID" ]; then
-              kill -9 $PID
-            fi
-            nohup java -jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &
-          EOF
+          aws s3 cp build/libs/groo-0.0.1-SNAPSHOT.jar s3://$S3_JAR_BUCKET_NAME/
+
+      - name: Deploy via SSM
+        run: |
+          # JAR 다운로드 및 디렉토리 준비
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy groo app" \
+            --parameters 'commands=[
+              "mkdir -p /home/ec2-user",
+              "rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar",
+              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/groo-0.0.1-SNAPSHOT.jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar"
+            ]'
+
+          # 앱 재시작
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Restart groo app" \
+            --parameters 'commands=[
+              "PID=$(ps aux | grep groo-0.0.1-SNAPSHOT.jar | grep -v grep | awk '\''{print $2}'\'')",
+              "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
+              "nohup java -jar /home/ec2-user/groo-0.0.1-SNAPSHOT.jar > /dev/null 2>&1 &"
+            ]'
