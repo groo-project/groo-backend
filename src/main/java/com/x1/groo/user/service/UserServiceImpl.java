@@ -80,6 +80,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // 기능 : 회원가입
+    @Transactional
     @Override
     public String registerUser(@Valid SignupRequestVO signupRequestVO) throws CustomException {
         // 이메일 중복 체크
@@ -129,7 +130,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(nickname);
     }
 
-
+    @Transactional
     @Override
     public ResponseEntity<String> verifyEmailAuthentication(EmailCheckDTO emailCheckDto) {
 

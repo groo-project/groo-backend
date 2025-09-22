@@ -48,6 +48,10 @@ public class SecurityConfig  {
                         .requestMatchers("/api/logs/**").hasRole("ADMIN")
 
                         // health 체크
+                         .requestMatchers("/", "/health/**", "/healthz", "/actuator/health").permitAll()
+
+                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
 
                         // swagger
@@ -63,7 +67,7 @@ public class SecurityConfig  {
                                 "/api/mails/**",
                                 "/api/image/**",
                                 "/error",
-                                "/api/auth/refresh",
+                                "/api/auth/**",
                                 "/api/sse/**")
                         .permitAll()
 

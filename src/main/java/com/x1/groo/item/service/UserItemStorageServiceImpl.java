@@ -8,6 +8,7 @@ import com.x1.groo.item.domain.storage.aggregate.UserItemStorageEntity;
 import com.x1.groo.item.domain.storage.repository.UserItemStorageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserItemStorageServiceImpl implements UserItemStorageService {
@@ -26,6 +27,7 @@ public class UserItemStorageServiceImpl implements UserItemStorageService {
 
     }
 
+    @Transactional
     @Override
     public void saveItemToStorage(int userId, int itemId, int forestId) {
 

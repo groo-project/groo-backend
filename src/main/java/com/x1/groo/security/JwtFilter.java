@@ -12,35 +12,41 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import static org.springframework.web.util.WebUtils.getCookie;
 
-
+@Component
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-//    private final TokenProvider tokenProvider;
+    private static final AntPathMatcher PM = new AntPathMatcher();
 
     public JwtFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
 
-    private static final List<String> EXCLUDE_URLS = List.of(
-            "/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"
-    );
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true; // CORS preflight
         String path = request.getRequestURI();
-        return EXCLUDE_URLS.stream().anyMatch(path::startsWith);
+        for (String p : SKIP_PATTERNS) {
+            if (PM.match(p, path)) return true; //  공개 경로는 아예 필터 스킵
+        }
+        return false;
     }
 
-    private static final java.util.Set<String> SKIP = java.util.Set.of(
-            "/api/auth/login", "/api/auth/refresh", "/api/auth/signup", "/api/auth/logout"
+    private static final java.util.Set<String> SKIP_PATTERNS = java.util.Set.of(
+            "/health/**", "/healthz", "/actuator/**",
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+            "/api/auth/**", "/api/mails/**", "/api/image/**", "/api/sse/**"
     );
 
 
@@ -50,58 +56,25 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
 
-
-        // Request Header 에서 토큰을 꺼냄
-//        String accessToken = resolveAccessToken(request);
-
-        String uri = request.getRequestURI();
-
-        //  예외 경로/OPTIONS는 무조건 통과
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || SKIP.contains(uri)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         //  이미 인증돼 있으면 통과
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Authorization 없으면 건드리지 말고 통과
-//        String auth = request.getHeader("Authorization");
-//        if (auth == null || !auth.startsWith("Bearer ")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
+        // authorization -> accessToken
+        String token = resolveAccessToken(request);
 
-        // 토큰 추출: 헤더 → 쿠키(accessToken) → (옵션) 쿼리파라미터(token, SSE 한정)
-        String token = null;
-
-//        String accessToken = auth.substring(7);
-
-        // Authorization: Bearer ...
-        String authz = request.getHeader("Authorization");
-        if (authz != null && authz.startsWith("Bearer ")) {
-            token = authz.substring(7);
-            // log.debug("JWT from Authorization header");
-        }
-
-        // 쿠키(accessToken)
         if (token == null) {
             token = getCookieValue(request, "accessToken");
-            // log.debug("JWT from accessToken cookie: {}", token != null);
         }
 
-//        // SSE 전용: ?token= 지원(원한다면)
-//        if (token == null && SSE_URI.matcher(uri).matches()) {
-//            token = request.getParameter("token");
-//            // log.debug("JWT from SSE query param: {}", token != null);
-//        }
-
-        if (token == null) {
-            token = String.valueOf(getCookie(request, "accessToken"));      // ★ 쿠키에서 AT 시도
+        //  토큰이 없거나 빈 값이면 ‘익명’으로 통과 (보호 URL은 Security가 막음)
+        if (token == null || token.isBlank()) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
 
         if(jwtUtil.validationAccessToken(token)) {
 
@@ -126,7 +99,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("AUTHORIZATION");
+        String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }

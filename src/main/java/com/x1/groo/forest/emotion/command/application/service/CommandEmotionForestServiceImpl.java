@@ -6,7 +6,6 @@ import com.x1.groo.common.sse.SseEventPublisher;
 import com.x1.groo.common.sse.SseEventType;
 import com.x1.groo.common.sse.payload.ForestUpdatedPayload;
 import com.x1.groo.common.sse.payload.ItemPlacedPayload;
-import com.x1.groo.common.sse.payload.UserLeftPayload;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -232,6 +231,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     }
 
     // 숲의 공개 여부 변경
+    @Transactional
     @Override
     public void updateForestPublic(int forestId, int userId) {
         ForestEntity forest = forestRepository.findById(forestId)
