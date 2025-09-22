@@ -144,7 +144,7 @@ jobs:
 
       - name: Upload JAR to S3
         run: |
-          aws s3 cp build/libs/groo-0.0.1-SNAPSHOT.jar s3://$S3_JAR_BUCKET_NAME/
+          aws s3 cp build/libs/groo-0.0.1-SNAPSHOT.jar s3://$S3_JAR_BUCKET_NAME/ --region $S3_REGION
 
       - name: Deploy via SSM
         run: |
