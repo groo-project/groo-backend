@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,6 +45,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ErrorResponse.from(errorCode));
+    }
+
+    /**
+     * 정적 리소스 못 찾을 때는 알림 X
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest req) {
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(Exception.class)
