@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final java.util.Set<String> SKIP_PATTERNS = java.util.Set.of(
             "/health/**", "/healthz", "/actuator/**",
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-            "/api/auth/**", "/api/mails/**", "/api/image/**", "/api/sse/**"
+            "/api/auth/**", "/api/mails/**", "/api/image/**"
     );
 
 

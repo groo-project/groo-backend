@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponseVO findMemberInfoById(Long userId) {
+    public LoginResponseVO findMemberInfoById(Integer userId) {
         return userRepository.findById(userId)
                 .map(LoginResponseVO::of)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -227,13 +227,21 @@ public class UserServiceImpl implements UserService {
         return new CustomUserDetails(dto);
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public UserDTO getUserById(String memNo) {
-        UserEntity foundUser = userRepository.findById(Long.parseLong(memNo)).get();
+        UserEntity foundUser = userRepository.findById(Integer.parseInt(memNo))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        UserDTO userDTO = modelMapper.map(foundUser, UserDTO.class);
+        return modelMapper.map(foundUser, UserDTO.class);
+    }
 
-        return userDTO;
+    @Transactional
+    @Override
+    public void updateNickname(int userId, String nickname) {
+        UserEntity foundUser = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        foundUser.setNickname(nickname);
     }
 }

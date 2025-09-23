@@ -1,10 +1,12 @@
 package com.x1.groo.user.controller;
 
 import com.x1.groo.auth.command.util.CookieUtil;
+import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.LoginUserDTO;
+import com.x1.groo.user.dto.UpdateNicknameDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import com.x1.groo.user.vo.ResponsefindUserVO;
@@ -18,13 +20,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @Tag(name = "유저", description = "회원가입 및 로그인 기능을 제공합니다.")
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
@@ -38,14 +41,15 @@ public class UserController {
         this.jwtUtil = jwtUtil;
     }
 
+    ///////////////// Todo: 추후 auth로 이동 고려 {
     @Operation(summary = "회원 가입")
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<String> registerUser(@RequestBody @Valid SignupRequestVO signupRequestVO) {
         return ResponseEntity.ok(userService.registerUser(signupRequestVO));
     }
 
     @Operation(summary = "로그인")
-    @PostMapping(value = "/login",
+    @PostMapping(value = "/auth/login",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> login(@RequestBody LoginRequestVO loginRequestVO,
                                           HttpServletResponse res) {
@@ -63,15 +67,23 @@ public class UserController {
         return ResponseEntity.ok(Map.of("accessToken", accessToken));
     }
 
-
-
     @Operation(summary = "회원 조회")
-    @GetMapping("{memNo}")
+    @GetMapping("/auth/{memNo}")
     public ResponseEntity<ResponsefindUserVO> getUsers(@PathVariable String memNo) {
         UserDTO userDTO = userService.getUserById(memNo);
 
         ResponsefindUserVO findUserVO = modelMapper.map(userDTO, ResponsefindUserVO.class);
 
         return ResponseEntity.status(HttpStatus.OK).body(findUserVO);
+    }
+    ///////////////// }
+
+    @Operation(summary = "닉네임 변경")
+    @PostMapping("/user/nickname")
+    public ResponseEntity<Void> updateNickname(@AuthenticationPrincipal CustomUserDetails user,
+                                               @RequestBody UpdateNicknameDTO dto) {
+        userService.updateNickname(user.getUserId(), dto.getNickname());
+
+        return ResponseEntity.ok().build();
     }
 }
