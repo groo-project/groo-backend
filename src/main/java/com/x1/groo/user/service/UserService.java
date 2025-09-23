@@ -17,7 +17,7 @@ public interface UserService extends UserDetailsService {
 
     String registerUser(@Valid SignupRequestVO signupRequestVO);
 
-    LoginResponseVO findMemberInfoById(Long userId);
+    LoginResponseVO findMemberInfoById(Integer userId);
 
     LoginResponseVO findMemberInfoByEmail(String email);
 
@@ -30,4 +30,6 @@ public interface UserService extends UserDetailsService {
     UserDetails loadUserByUsername(String email);
 
     LoginDTO login(LoginRequestVO loginRequestVO);
+
+    void updateNickname(int userId, String nickname);
 }
