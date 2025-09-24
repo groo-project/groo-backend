@@ -2,7 +2,7 @@ name: Staging Joanne Deploy
 on:
   push:
     branches: 
-      - main
+      - develop
   
 jobs:
   build-and-deploy: 
