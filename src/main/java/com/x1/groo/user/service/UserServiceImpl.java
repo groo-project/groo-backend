@@ -239,6 +239,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void updateNickname(int userId, String nickname) {
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CustomException(ErrorCode.USER_NICKNAME_DUPLICATE);
+        }
+
         UserEntity foundUser = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 

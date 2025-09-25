@@ -79,7 +79,7 @@ public class UserController {
     ///////////////// }
 
     @Operation(summary = "닉네임 변경")
-    @PostMapping("/user/nickname")
+    @PatchMapping("/user/nickname")
     public ResponseEntity<Void> updateNickname(@AuthenticationPrincipal CustomUserDetails user,
                                                @RequestBody UpdateNicknameDTO dto) {
         userService.updateNickname(user.getUserId(), dto.getNickname());
