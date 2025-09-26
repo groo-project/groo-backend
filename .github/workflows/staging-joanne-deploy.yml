@@ -123,11 +123,11 @@ jobs:
               password: ${DB_PASSWORD}
           
               hikari:
-                maximum-pool-size: 10
+                maximum-pool-size: 6
                 minimum-idle: 2
                 idle-timeout: 600000
                 max-lifetime: 1800000
-                connection-timeout: 30000
+                connection-timeout: 5000
                 leak-detection-threshold: 20000
 
             data:
@@ -140,10 +140,11 @@ jobs:
             webhook-url: ${DISCORD_WEBHOOK_URL}
           EOT
 
-      - name: Build Jar
+      - name: Build Jar (bootJar only)
         run: |
           chmod +x ./gradlew
-          ./gradlew clean build -x test
+          # ./gradlew clean build -x test
+          ./gradlew clean bootJar --no-daemon
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -154,7 +155,13 @@ jobs:
 
       - name: Package bundle for EB
         run: |
-          JAR_PATH=$(ls -t build/libs/*.jar | head -n 1)
+          # JAR_PATH=$(ls -t build/libs/*.jar | head -n 1)
+          JAR_PATH="build/libs/application.jar"
+
+          # 검증: BOOT-INF, Main-Class/Start-Class 반드시 존재
+          jar tf "$JAR_PATH" | grep -q '^BOOT-INF/' || { echo "ERROR: Not a Spring Boot fat jar"; exit 1; }
+          unzip -p "$JAR_PATH" META-INF/MANIFEST.MF | egrep -q 'Main-Class|Start-Class' || { echo "ERROR: Missing Main/Start-Class"; exit 1; }
+
           cp "$JAR_PATH" application.jar
 
           BUNDLE="eb-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}.zip"

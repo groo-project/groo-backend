@@ -124,7 +124,7 @@ jobs:
               password: ${DB_PASSWORD}
           
               hikari:
-                maximum-pool-size: 10
+                maximum-pool-size: 6
                 minimum-idle: 2
                 idle-timeout: 600000
                 max-lifetime: 1800000
@@ -166,5 +166,6 @@ jobs:
               "JAR_FILE=$(ls /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*)",
               "PID=$(ps aux | grep \"$JAR_FILE\" | grep -v grep | awk '\''{print $2}'\'')",
               "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
+              "cd /home/ec2-user",
               "nohup java -jar \"$JAR_FILE\" > /dev/null 2>&1 &"
             ]'
