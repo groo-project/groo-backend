@@ -13,6 +13,14 @@ java {
     }
 }
 
+// 실행 jar만 나오게 고정
+jar { enabled = false }
+
+bootJar {
+    archiveBaseName = 'application' // build/libs/application.jar 로 고정
+    archiveVersion = ''              // 파일명에 버전 제거
+}
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor

@@ -116,6 +116,7 @@ jobs:
               properties:
                 hibernate:
                   format_sql: true
+              open-in-view: false
 
             datasource:
               driver-class-name: ${DB_CLASS_NAME}
@@ -124,7 +125,7 @@ jobs:
               password: ${DB_PASSWORD}
           
               hikari:
-                maximum-pool-size: 6
+                maximum-pool-size: 10
                 minimum-idle: 2
                 idle-timeout: 600000
                 max-lifetime: 1800000

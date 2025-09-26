@@ -1,6 +1,7 @@
 package com.x1.groo.common.sse.controller;
 
 import com.x1.groo.common.sse.SseEmitterRegistry;
+import com.x1.groo.common.sse.service.MateSseService;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import java.security.Principal;
@@ -22,7 +23,7 @@ import java.io.IOException;
 public class MateSseController {
 
     private final SseEmitterRegistry registry;
-    private final SharedForestRepository sharedForestRepository;
+    private final MateSseService mateSseService;
 
     @Operation(summary = "SSE 방식 클라이언트 동기화 | 우정의 숲 이벤트 발생")
     @GetMapping( "/mate/{forestId}/events")
@@ -37,8 +38,7 @@ public class MateSseController {
         System.out.println("principal.getName(): " + principal.getName());
 
          // 접근 권한 체크
-        boolean allowed = sharedForestRepository.existsByUserIdAndForestId(
-                Integer.parseInt(principal.getName()), forestId);
+        boolean allowed = mateSseService.checkForestAccess(Integer.parseInt(principal.getName()), forestId);
         System.out.println("권한 체크 결과: " + allowed);
 
         if (!allowed) {

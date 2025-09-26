@@ -48,8 +48,7 @@ public class CommandMateController {
         int userId = user.getUserId();
         String inviteCode = commandMateService.createInviteLink(forestId, userId);
 
-        String inviteLink =  inviteCode;
-        return new CreateInviteRequest(inviteLink);
+        return new CreateInviteRequest(inviteCode);
     }
 
     @Operation(summary = "초대 수락")
