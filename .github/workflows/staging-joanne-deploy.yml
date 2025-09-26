@@ -128,6 +128,7 @@ jobs:
                 idle-timeout: 600000
                 max-lifetime: 1800000
                 connection-timeout: 30000
+                leak-detection-threshold: 20000
 
             data:
               redis:
