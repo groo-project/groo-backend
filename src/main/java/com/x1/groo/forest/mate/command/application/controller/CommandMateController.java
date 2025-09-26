@@ -48,7 +48,7 @@ public class CommandMateController {
         int userId = user.getUserId();
         String inviteCode = commandMateService.createInviteLink(forestId, userId);
 
-        String inviteLink = "http://localhost:5173/mate/invite/" + inviteCode;
+        String inviteLink =  inviteCode;
         return new CreateInviteRequest(inviteLink);
     }
 
