@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 
 @Tag(name = "일기", description = "일기 작성, 수정, 조회 기능을 제공합니다.")
