@@ -1,6 +1,5 @@
 package com.x1.groo.forest.mate.query.controller;
 
-import com.x1.groo.common.sse.SseEmitterRegistry;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.mate.query.dto.DiaryByDateDTO;
@@ -11,13 +10,10 @@ import com.x1.groo.forest.mate.query.service.MateServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 

@@ -1,20 +1,16 @@
 package com.x1.groo.forest.mate.command.application.controller;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.mate.command.application.service.CommandMateService;
 import com.x1.groo.forest.mate.command.domain.vo.CreateInviteRequest;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -52,7 +48,7 @@ public class CommandMateController {
         int userId = user.getUserId();
         String inviteCode = commandMateService.createInviteLink(forestId, userId);
 
-        String inviteLink = "http://localhost:5173/mate/invite/" + inviteCode;
+        String inviteLink =  inviteCode;
         return new CreateInviteRequest(inviteLink);
     }
 

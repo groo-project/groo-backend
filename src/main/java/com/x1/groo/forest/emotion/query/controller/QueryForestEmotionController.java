@@ -9,12 +9,10 @@ import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxListDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO;
 import com.x1.groo.forest.emotion.query.service.QueryForestEmotionService;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +26,10 @@ import java.util.List;
 @Slf4j
 public class QueryForestEmotionController {
 
-    private final JwtUtil jwtUtil;
     private final QueryForestEmotionService queryForestEmotionService;
 
     @Autowired
-    public QueryForestEmotionController(JwtUtil jwtUtil, QueryForestEmotionService queryForestEmotionService) {
-        this.jwtUtil = jwtUtil;
+    public QueryForestEmotionController(QueryForestEmotionService queryForestEmotionService) {
         this.queryForestEmotionService = queryForestEmotionService;
     }
 
