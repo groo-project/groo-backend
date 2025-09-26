@@ -74,21 +74,20 @@ public class CommandMateServiceImpl implements CommandMateService {
 
         if(!forestRepository.existsById(forestId))throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
 
-        for(int i=0; i<3; i++) {
-            String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,8);
+        String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
 
-            ForestInviteEntity entity = new ForestInviteEntity();
-            entity.setForestId(forestId);
-            entity.setCode(inviteCode);
-            entity.setCreatedBy(userId);
-            try {
-                forestInviteRepository.saveAndFlush(entity);
-                return inviteCode;
-            } catch (DataIntegrityViolationException e) {
-                if(!isUniqueViolation(e)) throw new CustomException(ErrorCode.FOREST_INVITE_GENERATION_FAILED);
-            }
+        ForestInviteEntity entity = new ForestInviteEntity();
+        entity.setForestId(forestId);
+        entity.setCode(inviteCode);
+        entity.setCreatedBy(userId);
+        try {
+            forestInviteRepository.saveAndFlush(entity);
+            return inviteCode;
+        } catch (DataIntegrityViolationException e) {
+            if(!isUniqueViolation(e)) throw new CustomException(ErrorCode.FOREST_INVITE_GENERATION_FAILED);
+            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_SAVE_FAILED);
         }
-        throw new CustomException(ErrorCode.FOREST_INVITE_CODE_SAVE_FAILED);
+
     }
 
     public boolean isUniqueViolation(DataIntegrityViolationException e) {
