@@ -152,21 +152,32 @@ jobs:
 
       - name: Upload JAR to S3
         run: |
-          aws s3 cp build/libs/groo-0.0.1-SNAPSHOT.jar s3://$S3_JAR_BUCKET_NAME/ --region $S3_REGION
+          JAR_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          FIXED_JAR_NAME="app.jar"
+          
+          if [ -z "$JAR_PATH" ]; then
+            echo "::error::JAR file not found in build/libs directory after build. Check the 'Build Jar' step logs."
+            exit 1
+          fi
+
+          echo "Found JAR file: $JAR_PATH. Uploading as $FIXED_JAR_NAME..."
+          
+          aws s3 cp $JAR_PATH s3://$S3_JAR_BUCKET_NAME/$FIXED_JAR_NAME --region $S3_REGION
 
       - name: Deploy via SSM
         run: |
+          FIXED_JAR_NAME="app.jar"
+
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy groo app" \
             --parameters 'commands=[
               "mkdir -p /home/ec2-user",
-              "rm -f /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*",
-              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/ /home/ec2-user/ --recursive --exclude \"*\" --include \"groo-0.0.1-SNAPSHOT.jar*\" --region '"$EC2_REGION"'",
-              "JAR_FILE=$(ls /home/ec2-user/groo-0.0.1-SNAPSHOT.jar*)",
-              "PID=$(ps aux | grep \"$JAR_FILE\" | grep -v grep | awk '\''{print $2}'\'')",
-              "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
+              "rm -f /home/ec2-user/'"$FIXED_JAR_NAME"'",
+              "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/'"$FIXED_JAR_NAME"' /home/ec2-user/ --region '"$EC2_REGION"'",
+              "PID=$(ps aux | grep \"'"$FIXED_JAR_NAME"'\" | grep -v grep | awk '\''{print \$2}'\'')",
+              "if [ -n \"$PID\" ]; then kill -9 \$PID; fi",
               "cd /home/ec2-user",
-              "nohup java -jar \"$JAR_FILE\" > /dev/null 2>&1 &"
+              "nohup java -jar '"$FIXED_JAR_NAME"' > /dev/null 2>&1 &"
             ]'
