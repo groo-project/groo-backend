@@ -3,7 +3,6 @@ package com.x1.groo.item.controller;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.item.service.UserItemStorageService;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +18,10 @@ import org.springframework.web.bind.annotation.*;
 public class UserItemStorageController {
 
     private final UserItemStorageService userItemStorageService;
-    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserItemStorageController(UserItemStorageService userItemStorageService, JwtUtil jwtUtil) {
+    public UserItemStorageController(UserItemStorageService userItemStorageService) {
         this.userItemStorageService = userItemStorageService;
-        this.jwtUtil = jwtUtil;
     }
 
     @Operation(summary = "소유 아이템 저장", description = "아이템 획득 시 나의 보관소에 아이템이 추가됩니다.")
@@ -33,8 +30,6 @@ public class UserItemStorageController {
                                                   @RequestParam int itemId, @RequestParam int forestId) {
 
         int userId = user.getUserId();
-
-        log.info("userId = {}", userId);
 
         userItemStorageService.saveItemToStorage(userId, itemId, forestId);
 
