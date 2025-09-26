@@ -33,7 +33,7 @@ jobs:
       REDIS_HOST: ${{ secrets.R_REDIS_HOST }}
       REDIS_PORT: ${{ secrets.R_REDIS_PORT }}
 
-      DISCORD_WEBHOOK_URL: ${{ secrets.R_DISCORD_WEBHOOK_URL }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.J_DISCORD_WEBHOOK_URL }}
     
       EB_APPLICATION_NAME: ${{ secrets.J_EB_APPLICATION_NAME }}
       EB_ENVIRONMENT_NAME: ${{ secrets.J_EB_ENVIRONMENT_NAME }}
