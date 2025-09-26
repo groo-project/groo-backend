@@ -31,8 +31,6 @@ public class UserItemStorageController {
 
         int userId = user.getUserId();
 
-        log.info("userId = {}", userId);
-
         userItemStorageService.saveItemToStorage(userId, itemId, forestId);
 
         return ResponseEntity.ok().build();
