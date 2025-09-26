@@ -123,11 +123,11 @@ jobs:
               password: ${DB_PASSWORD}
           
               hikari:
-                maximum-pool-size: 10
+                maximum-pool-size: 6
                 minimum-idle: 2
                 idle-timeout: 600000
                 max-lifetime: 1800000
-                connection-timeout: 30000
+                connection-timeout: 5000
                 leak-detection-threshold: 20000
 
             data:
