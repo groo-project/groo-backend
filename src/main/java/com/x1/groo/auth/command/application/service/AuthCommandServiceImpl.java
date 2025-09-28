@@ -10,7 +10,6 @@ import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -36,10 +35,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         this.userService = userService;
     }
 
-    @Operation(
-            summary = "accessToken 재발급",
-            description = "accessToken 만료 시 refreshToken을 이용해서 accessToken 재발급"
-    )
     @Override
     @Transactional
     public RefreshResult refresh(String rt) {

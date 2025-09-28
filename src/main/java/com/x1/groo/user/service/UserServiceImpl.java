@@ -79,10 +79,16 @@ public class UserServiceImpl implements UserService {
         this.forestInviteRepository = forestInviteRepository;
     }
 
+    @Override
+    public boolean findByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     // 기능 : 회원가입
     @Transactional
     @Override
     public String registerUser(@Valid SignupRequestVO signupRequestVO) throws CustomException {
+
         // 이메일 중복 체크
         Optional<UserEntity> existingUser = userRepository.findByEmailOrNickname(signupRequestVO.getEmail(),
                 signupRequestVO.getNickname());

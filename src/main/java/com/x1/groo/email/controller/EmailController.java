@@ -1,5 +1,7 @@
 package com.x1.groo.email.controller;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.service.EmailServiceImpl;
 import com.x1.groo.email.vo.EmailRequestVO;
@@ -27,6 +29,9 @@ public class EmailController {
     @Operation(summary = "인증 코드 전송")
     @PostMapping
     public String mailSend(@RequestBody @Valid EmailRequestVO emailRequestVO) {
+        if(userService.findByEmail(emailRequestVO.getEmail())){
+            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
+        }
         return mailService.joinEmail(emailRequestVO.getEmail());
     }
 
@@ -34,7 +39,6 @@ public class EmailController {
     @PostMapping("/verification")
     public ResponseEntity<String> verifyEmail(@RequestBody @Valid EmailCheckDTO emailCheckDto) {
 
-        log.info("email: {}, auth: {}", emailCheckDto.getEmail(),emailCheckDto.getAuthNum());
         return userService.verifyEmailAuthentication(emailCheckDto);
     }
 }
