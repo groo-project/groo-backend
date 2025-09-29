@@ -19,7 +19,7 @@
                  %logger{36}: 로거 이름(최대 36자)
                  %msg: 로그 메시지
                  %n: 줄바꿈 -->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss, Asia/Seoul} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -27,7 +27,7 @@
     <appender name="File" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
             <!-- Console Appender와 동일한 출력 형식을 사용 -->
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss, Asia/Seoul} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
         <!-- 로그 파일 롤링 정책을 설정 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">

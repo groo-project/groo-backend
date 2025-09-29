@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+
 @Tag(name = "health check", description = "just for health check")
 @RestController
 @RequestMapping("/api/health")
@@ -14,6 +16,6 @@ public class GrooController {
     @Operation(summary = "health check")
     @GetMapping
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("I'm OK");
+        return ResponseEntity.ok(LocalDateTime.now() + " I'm OK" );
     }
 }
