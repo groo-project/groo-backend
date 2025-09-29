@@ -16,6 +16,6 @@ public class GrooController {
     @Operation(summary = "health check")
     @GetMapping
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok(LocalDateTime.now() + " I'm OK" );
+        return ResponseEntity.ok(LocalDateTime.now() + " I'm OK1" );
     }
 }
