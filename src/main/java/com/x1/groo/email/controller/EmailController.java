@@ -26,13 +26,22 @@ public class EmailController {
     private final EmailServiceImpl mailService;
     private final UserService userService;
 
-    @Operation(summary = "인증 코드 전송")
-    @PostMapping
-    public String mailSend(@RequestBody @Valid EmailRequestVO emailRequestVO) {
-        if(userService.findByEmail(emailRequestVO.getEmail())){
+    @Operation(summary = "회원가입 인증 코드 전송")
+    @PostMapping("/signup")
+    public String mailSend(@RequestBody @Valid EmailRequestVO req) {
+        if(userService.findByEmail(req.getEmail())){
             throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
         }
-        return mailService.joinEmail(emailRequestVO.getEmail());
+        return mailService.joinEmail(req.getEmail());
+    }
+
+    @Operation(summary = "비밀번호 찾기 인증 코드 전송")
+    @PostMapping("/password")
+    public String passwordMailSend(@RequestBody EmailRequestVO req) {
+        if(!userService.findByEmail(req.getEmail())){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        return mailService.findPassword(req.getEmail());
     }
 
     @Operation(summary = "인증 코드 일치 여부 확인")
