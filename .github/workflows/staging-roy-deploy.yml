@@ -176,8 +176,8 @@ jobs:
               "mkdir -p /home/ec2-user",
               "rm -f /home/ec2-user/'"$FIXED_JAR_NAME"'",
               "aws s3 cp s3://'"$S3_JAR_BUCKET_NAME"'/'"$FIXED_JAR_NAME"' /home/ec2-user/ --region '"$EC2_REGION"'",
-              "PID=$(ps aux | grep \"'"$FIXED_JAR_NAME"'\" | grep -v grep | awk '\''{print \$2}'\'')",
-              "if [ -n \"$PID\" ]; then kill -9 \$PID; fi",
+              "PID=$(pgrep -f \"'"$FIXED_JAR_NAME"'\")",
+              "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
               "cd /home/ec2-user",
               "nohup java -jar '"$FIXED_JAR_NAME"' > /dev/null 2>&1 &"
             ]'
