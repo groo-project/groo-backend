@@ -179,5 +179,5 @@ jobs:
               "PID=$(pgrep -f \"'"$FIXED_JAR_NAME"'\")",
               "if [ -n \"$PID\" ]; then kill -9 $PID; fi",
               "cd /home/ec2-user",
-              "nohup java -jar '"$FIXED_JAR_NAME"' > /dev/null 2>&1 &"
+              "nohup java -Duser.timezone=Asia/Seoul -jar '"$FIXED_JAR_NAME"' > /dev/null 2>&1 &"
             ]'
