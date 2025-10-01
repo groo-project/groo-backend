@@ -9,6 +9,7 @@ import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UpdateNicknameDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
+import com.x1.groo.user.vo.FindPasswordRequestVO;
 import com.x1.groo.user.vo.ResponsefindUserVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,6 +76,14 @@ public class UserController {
         ResponsefindUserVO findUserVO = modelMapper.map(userDTO, ResponsefindUserVO.class);
 
         return ResponseEntity.status(HttpStatus.OK).body(findUserVO);
+    }
+
+    @Operation(summary = "비밀번호 찾기")
+    @PostMapping("/auth/password")
+    public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequestVO findPasswordRequestVO) {
+        userService.findPassword(findPasswordRequestVO);
+
+        return ResponseEntity.ok().build();
     }
     ///////////////// }
 

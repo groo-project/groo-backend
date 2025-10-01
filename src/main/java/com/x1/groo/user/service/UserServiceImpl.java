@@ -1,5 +1,7 @@
 package com.x1.groo.user.service;
 
+import static java.awt.SystemColor.info;
+
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
@@ -24,6 +26,7 @@ import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.repository.UserRepository;
+import com.x1.groo.user.vo.FindPasswordRequestVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -79,10 +82,16 @@ public class UserServiceImpl implements UserService {
         this.forestInviteRepository = forestInviteRepository;
     }
 
+    @Override
+    public boolean findByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     // 기능 : 회원가입
     @Transactional
     @Override
     public String registerUser(@Valid SignupRequestVO signupRequestVO) throws CustomException {
+
         // 이메일 중복 체크
         Optional<UserEntity> existingUser = userRepository.findByEmailOrNickname(signupRequestVO.getEmail(),
                 signupRequestVO.getNickname());
@@ -138,9 +147,9 @@ public class UserServiceImpl implements UserService {
 
         EmailEntity entity = emailRepository.findByEmail(email);
 
-        if (userRepository.existsByEmail(email)) {
-            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
-        }
+//        if (userRepository.existsByEmail(email)) {
+//            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
+//        }
 
         String storedAuthNum = entity.getVerificationCode();
         if (storedAuthNum == null || !storedAuthNum.equals(emailCheckDto.getAuthNum())) {
@@ -234,6 +243,27 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         return modelMapper.map(foundUser, UserDTO.class);
+    }
+
+    // 비밀번호 찾기
+    @Transactional
+    @Override
+    public void findPassword(FindPasswordRequestVO findPasswordRequestVO) {
+
+        UserEntity user = userRepository.findByEmail(findPasswordRequestVO.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 이메일 인증 여부 확인
+        if (!redisUtil.exists(findPasswordRequestVO.getEmail())) {
+            throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
+        }
+
+        // 새로운 비밀번호 작성 후 비밀번호 db에 저장
+        user.setPassword(bCryptPasswordEncoder.encode(findPasswordRequestVO.getPassword()));
+        userRepository.save(user);
+
+        redisUtil.deleteData(findPasswordRequestVO.getEmail());
+
     }
 
     @Transactional

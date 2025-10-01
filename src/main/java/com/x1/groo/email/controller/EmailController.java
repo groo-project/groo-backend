@@ -1,5 +1,7 @@
 package com.x1.groo.email.controller;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.service.EmailServiceImpl;
 import com.x1.groo.email.vo.EmailRequestVO;
@@ -24,17 +26,28 @@ public class EmailController {
     private final EmailServiceImpl mailService;
     private final UserService userService;
 
-    @Operation(summary = "인증 코드 전송")
-    @PostMapping
-    public String mailSend(@RequestBody @Valid EmailRequestVO emailRequestVO) {
-        return mailService.joinEmail(emailRequestVO.getEmail());
+    @Operation(summary = "회원가입 인증 코드 전송")
+    @PostMapping("/signup")
+    public String mailSend(@RequestBody @Valid EmailRequestVO req) {
+        if(userService.findByEmail(req.getEmail())){
+            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
+        }
+        return mailService.joinEmail(req.getEmail());
+    }
+
+    @Operation(summary = "비밀번호 찾기 인증 코드 전송")
+    @PostMapping("/password")
+    public String passwordMailSend(@RequestBody EmailRequestVO req) {
+        if(!userService.findByEmail(req.getEmail())){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        return mailService.findPassword(req.getEmail());
     }
 
     @Operation(summary = "인증 코드 일치 여부 확인")
     @PostMapping("/verification")
     public ResponseEntity<String> verifyEmail(@RequestBody @Valid EmailCheckDTO emailCheckDto) {
 
-        log.info("email: {}, auth: {}", emailCheckDto.getEmail(),emailCheckDto.getAuthNum());
         return userService.verifyEmailAuthentication(emailCheckDto);
     }
 }

@@ -7,8 +7,11 @@ import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.UserDTO;
+import com.x1.groo.user.vo.FindPasswordRequestVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,4 +35,8 @@ public interface UserService extends UserDetailsService {
     LoginDTO login(LoginRequestVO loginRequestVO);
 
     void updateNickname(int userId, String nickname);
+
+    boolean findByEmail(@Email @NotEmpty(message = "이메일을 입력해 주세요") String email);
+
+    void findPassword(FindPasswordRequestVO findPasswordRequestVO);
 }

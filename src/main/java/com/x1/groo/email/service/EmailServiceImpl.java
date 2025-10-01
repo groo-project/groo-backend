@@ -9,6 +9,8 @@ import com.x1.groo.user.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Random;
@@ -21,6 +23,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +58,7 @@ public class EmailServiceImpl implements EmailService {
 
         try {
             // HTML 템플릿 로드
-            String content = loadHtmlTemplate();
+            String content = loadHtmlTemplate("template/email/signup.html");
 
             // 템플릿에 인증 번호 삽입
             content = content.replace("${authNumber}", String.valueOf(authNumber));
@@ -72,11 +75,12 @@ public class EmailServiceImpl implements EmailService {
     }
 
     // HTML 템플릿 로드 메서드
-    private String loadHtmlTemplate() throws IOException {
+    private String loadHtmlTemplate(String path) throws IOException {
         // ClassPathResource를 사용하여 리소스 폴더의 템플릿 로드
-        ClassPathResource resource = new ClassPathResource("email-template.html");
-        byte[] fileBytes = Files.readAllBytes(Paths.get(resource.getURI()));
-        return new String(fileBytes, "UTF-8");
+        ClassPathResource resource = new ClassPathResource(path);
+        try (InputStream is = resource.getInputStream()) {
+            return StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+        }
     }
 
     // 이메일 전송
@@ -95,5 +99,34 @@ public class EmailServiceImpl implements EmailService {
 
         // key : 이메일, value : 인증 번호
         redisUtil.setDataExpire(toMail, Integer.toString(authNumber), authCodeExpirationMillis / 60000);
+    }
+
+    @Override
+    public String findPassword(String email) {
+        makeRandomNumber();
+        String setFrom = "\"Groo Admin\" <x1grooservice@gmail.com>";
+        String title = "Groo 회원 가입 인증 이메일 입니다.";
+
+        EmailEntity entity = new EmailEntity();
+        entity.setEmail(email);
+        entity.setVerificationCode(String.valueOf(authNumber));
+
+        try {
+            // HTML 템플릿 로드
+            String content = loadHtmlTemplate("template/email/find-password.html");
+
+            // 템플릿에 인증 번호 삽입
+            content = content.replace("${authNumber}", String.valueOf(authNumber));
+
+            // 이메일 발송
+            mailSend(setFrom, email, title, content);
+
+            emailRepository.save(entity);
+
+            return Integer.toString(authNumber);
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.EMAIL_TEMPLATE_LOAD_FAIL, e);
+        }
+
     }
 }
