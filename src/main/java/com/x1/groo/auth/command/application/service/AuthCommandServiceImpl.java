@@ -29,7 +29,9 @@ import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -189,8 +191,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                     return forestRepository.save(f);
                 });
 
-//        RefreshToken refreshToken = refreshTokenRepository.save();
-
         String accessToken = jwtUtil.generateAccessToken(
                 user.getId(),
                 user.getEmail(),
@@ -214,5 +214,16 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .user(new LoginUserDTO(user.getId(), user.getEmail(), user.getNickname()))
                 .roles(List.of(user.getRole().toString()))
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public void withdraw(int userId) {
+        UserEntity user = userRepository.findById(userId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.setIsDeleted(true);
+
+        refreshTokenRepository.deleteAllByUserId(userId);
+
     }
 }
