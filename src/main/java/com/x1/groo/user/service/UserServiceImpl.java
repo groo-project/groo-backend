@@ -53,6 +53,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private static final String OAUTH_PROVIDER_KAKAO = "KAKAO";
+
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final ModelMapper modelMapper;
@@ -278,21 +280,13 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public LoginDTO loginOrRegisterKakaoUser(KakaoUserInfoDTO userInfo) {
-        UserEntity user = userRepository.findByOauthProviderAndOauthId("KAKAO", userInfo.getKakaoId().toString())
+        UserEntity user = userRepository.findByOauthProviderAndOauthId(OAUTH_PROVIDER_KAKAO, userInfo.getKakaoId().toString())
                 .orElseGet(() -> {
-                    // 닉네임 자동 유일화
-                    String baseNickname = userInfo.getNickname();
-                    String nickname = baseNickname;
-                    int suffix = 1;
-
-                    while (userRepository.existsByNickname(nickname)) {
-                        nickname = baseNickname + suffix;
-                        suffix++;
-                    }
+                    String nickname = generateUniqueNickname(userInfo.getNickname());
 
                     UserEntity newUser = new UserEntity();
                     newUser.setNickname(nickname);
-                    newUser.setOauthProvider("KAKAO");
+                    newUser.setOauthProvider(OAUTH_PROVIDER_KAKAO);
                     newUser.setOauthId(userInfo.getKakaoId().toString());
 
                     UserEntity savedUser = userRepository.save(newUser);
@@ -327,5 +321,20 @@ public class UserServiceImpl implements UserService {
                 .roles(roles)
                 .user(new LoginUserDTO(user.getId(), user.getEmail(), user.getNickname()))
                 .build();
+    }
+
+    private String generateUniqueNickname(String baseNickname) {
+        List<String> existingNicknames = userRepository.findNicknamesByBase(baseNickname);
+
+        int maxSuffix = existingNicknames.stream()
+                .map(name -> name.replace(baseNickname, ""))
+                .filter(suffix -> suffix.matches("\\d+"))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(0);
+
+        return maxSuffix == 0 && !existingNicknames.contains(baseNickname)
+                ? baseNickname
+                : baseNickname + (maxSuffix + 1);
     }
 }

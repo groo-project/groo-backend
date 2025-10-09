@@ -13,7 +13,8 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class KakaoOAuthService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -42,7 +43,7 @@ public class KakaoOAuthService {
         HttpEntity<String> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> tokenRes = restTemplate.exchange(tokenUri, HttpMethod.POST, request, String.class);
 
-        JsonNode json = new ObjectMapper().readTree(tokenRes.getBody());
+        JsonNode json = objectMapper.readTree(tokenRes.getBody());
         String accessToken = json.get("access_token").asText();
 
         // 2) 사용자 정보 요청
@@ -51,7 +52,7 @@ public class KakaoOAuthService {
         HttpEntity<Void> infoRequest = new HttpEntity<>(infoHeaders);
         ResponseEntity<String> infoRes = restTemplate.exchange(userInfoUri, HttpMethod.GET, infoRequest, String.class);
 
-        JsonNode userJson = new ObjectMapper().readTree(infoRes.getBody());
+        JsonNode userJson = objectMapper.readTree(infoRes.getBody());
         Long kakaoId = userJson.get("id").asLong();
         String nickname = userJson.get("properties").get("nickname").asText();
 
