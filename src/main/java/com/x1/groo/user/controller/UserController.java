@@ -4,11 +4,11 @@ import com.x1.groo.auth.command.util.CookieUtil;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.security.vo.LoginRequestVO;
-import com.x1.groo.user.dto.LoginDTO;
-import com.x1.groo.user.dto.LoginUserDTO;
-import com.x1.groo.user.dto.UpdateNicknameDTO;
-import com.x1.groo.user.dto.UserDTO;
+import com.x1.groo.user.dto.*;
+import com.x1.groo.user.service.KakaoOAuthService;
 import com.x1.groo.user.service.UserService;
+import com.x1.groo.user.vo.FindPasswordRequestVO;
+import com.x1.groo.user.vo.KakaoLoginRequestVO;
 import com.x1.groo.user.vo.ResponsefindUserVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @Tag(name = "유저", description = "회원가입 및 로그인 기능을 제공합니다.")
@@ -32,13 +33,16 @@ public class UserController {
     private final UserService userService;
     private final ModelMapper modelMapper;
     private final JwtUtil jwtUtil;
+    private final KakaoOAuthService kakaoOAuthService;
 
     public UserController(UserService userService,
                           ModelMapper modelMapper,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil,
+                          KakaoOAuthService kakaoOAuthService) {
         this.userService = userService;
         this.modelMapper = modelMapper;
         this.jwtUtil = jwtUtil;
+        this.kakaoOAuthService = kakaoOAuthService;
     }
 
     ///////////////// Todo: 추후 auth로 이동 고려 {
@@ -58,14 +62,32 @@ public class UserController {
 
         LoginUserDTO user = login.getUser();
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getEmail(), user.getNickname(), login.getRoles());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
+        String accessToken = login.getAccessToken();
+        String refreshToken = login.getRefreshToken();
 
         CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
         CookieUtil.setAccessCookie(res, accessToken, jwtUtil.getAccessTtl());
 
         return ResponseEntity.ok(Map.of("accessToken", accessToken));
     }
+
+    @Operation(summary = "카카오 로그인")
+    @PostMapping(value = "/auth/kakao/login")
+    public ResponseEntity<?> kakaoLogin(@RequestBody KakaoLoginRequestVO vo,
+                                        HttpServletResponse res) throws Exception {
+
+        KakaoUserInfoDTO kakaoUser = kakaoOAuthService.getUserInfoByCode(vo.getCode());
+        LoginDTO login = userService.loginOrRegisterKakaoUser(kakaoUser);
+
+        String accessToken = login.getAccessToken();
+        String refreshToken = login.getRefreshToken();
+
+        CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
+        CookieUtil.setAccessCookie(res, accessToken, jwtUtil.getAccessTtl());
+
+        return ResponseEntity.ok(Map.of("accessToken", accessToken));
+    }
+
 
     @Operation(summary = "회원 조회")
     @GetMapping("/auth/{memNo}")
@@ -75,6 +97,14 @@ public class UserController {
         ResponsefindUserVO findUserVO = modelMapper.map(userDTO, ResponsefindUserVO.class);
 
         return ResponseEntity.status(HttpStatus.OK).body(findUserVO);
+    }
+
+    @Operation(summary = "비밀번호 찾기")
+    @PostMapping("/auth/password")
+    public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequestVO findPasswordRequestVO) {
+        userService.findPassword(findPasswordRequestVO);
+
+        return ResponseEntity.ok().build();
     }
     ///////////////// }
 

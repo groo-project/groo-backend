@@ -3,6 +3,7 @@ package com.x1.groo.auth.command.application.controller;
 import com.x1.groo.auth.command.application.vo.RefreshResult;
 import com.x1.groo.auth.command.application.service.AuthCommandService;
 import com.x1.groo.auth.command.util.CookieUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class AuthCommandController {
         this.authCommandService = authCommandService;
     }
 
+    @Operation( summary = "AT/RT 재발급")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletResponse res,
                                      @CookieValue(value = "refreshToken", required = false) String rt) {
@@ -42,6 +44,7 @@ public class AuthCommandController {
 
     }
 
+    @Operation( summary = "로그아웃")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse res) {
 
