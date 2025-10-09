@@ -179,7 +179,7 @@ public class CommandMateServiceImpl implements CommandMateService {
         ForestEntity forest = new ForestEntity();
         forest.setName(request.getForestName());
         forest.setMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")));
-        forest.setIsPublic(true);
+        forest.setIsPublic(false);
         forest.setBackground(background);
         forest.setUser(user);
 

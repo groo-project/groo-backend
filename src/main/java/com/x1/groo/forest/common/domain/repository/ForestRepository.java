@@ -31,4 +31,6 @@ public interface ForestRepository extends JpaRepository<ForestEntity, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select f from ForestEntity f where f.id = :id")
     ForestEntity lockById(@Param("id") int forestId);
+
+    Optional<ForestEntity> findByUser_Email(String email);
 }

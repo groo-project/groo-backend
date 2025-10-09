@@ -63,11 +63,11 @@ public class SecurityConfig  {
                         .permitAll()
 
                         // 모두 접근 갸능
-                        .requestMatchers("/api/auth/**",
+                        .requestMatchers(
+                                "/api/auth/**",
                                 "/api/mails/**",
                                 "/api/image/**",
                                 "/error",
-                                "/api/auth/**",
                                 "/api/sse/**")
                         .permitAll()
 
