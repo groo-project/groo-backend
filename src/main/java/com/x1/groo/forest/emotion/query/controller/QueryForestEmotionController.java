@@ -1,7 +1,6 @@
 package com.x1.groo.forest.emotion.query.controller;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.emotion.query.dto.*;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
@@ -91,7 +90,6 @@ public class QueryForestEmotionController {
     @GetMapping("/myforest")
     public ResponseEntity<List<QueryForestEmotionListDTO>> getMyForest(
             @AuthenticationPrincipal CustomUserDetails user) {
-        log.info("principal userId={}, email={}", user.getUserId(), user.getUsername());
 
         int userId = user.getUserId();
 
