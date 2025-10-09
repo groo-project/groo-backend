@@ -18,7 +18,4 @@ public class LoginUserDTO {
 
     @JsonProperty
     private String nickname;
-
-    @JsonProperty
-    private int forestId;
 }

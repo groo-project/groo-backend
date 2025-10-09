@@ -42,6 +42,10 @@ jobs:
       EC2_INSTANCE_ID: ${{ secrets.R_EC2_INSTANCE_ID }}
       S3_JAR_BUCKET_NAME: ${{ secrets.R_S3_JAR_BUCKET_NAME }}
 
+      KAKAO_CLIENT_ID: ${{ secrets.R_KAKAO_CLIENT_ID }}
+      KAKAO_CLIENT_SECRET: ${{ secrets.R_KAKAO_CLIENT_SECRET }}
+      KAKAO_REDIRECT_URI: ${{ secrets.R_KAKAO_REDIRECT_URI }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -103,6 +107,13 @@ jobs:
             heartbeat:
               period-ms: 15000
               idle-ms: 20000
+          
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${KAKAO_REDIRECT_URI}
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
           ---
           spring:
             config:
