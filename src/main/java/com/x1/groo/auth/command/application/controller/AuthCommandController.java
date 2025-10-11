@@ -4,24 +4,25 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.x1.groo.auth.command.application.vo.GoogleLoginRequestVO;
 import com.x1.groo.auth.command.application.vo.RefreshResult;
 import com.x1.groo.auth.command.application.service.AuthCommandService;
 import com.x1.groo.auth.command.util.CookieUtil;
-import com.x1.groo.security.JwtAuthenticationProvider;
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.security.util.JwtUtil;
+import com.x1.groo.user.dto.LoginDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -35,8 +36,7 @@ public class AuthCommandController {
     private final AuthCommandService authCommandService;
     private final JwtUtil jwtUtil;
 
-    @Value("${app.google.client-id}")
-    private String googleClientId;
+
 
 
     @Operation( summary = "AT/RT 재발급")
@@ -45,7 +45,6 @@ public class AuthCommandController {
                                      @CookieValue(value = "refreshToken", required = false) String rt) {
 
         try {
-
             RefreshResult result = authCommandService.refresh(rt);
 
             CookieUtil.setRefreshCookie( res, result.getNewRefreshToken(), result.getRefreshTtl());
@@ -71,42 +70,22 @@ public class AuthCommandController {
     }
 
     @PostMapping("/google")
-    public ResponseEntity<?> google(@RequestBody Map<String,String> body) {
-        String idTokenString = body.get("idToken");
-
-//        var verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
-//                .setAudience(Collections.singletonList(googleClientId))  // yml 매핑
-//                .build();
-
-        if (idTokenString == null || idTokenString.isBlank()) {
-            return ResponseEntity.badRequest().body("idToken is required");
-        }
-
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
-                .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
-                .setAudience(Collections.singletonList(googleClientId))
-                .build();
+    public ResponseEntity<?> google(@RequestBody GoogleLoginRequestVO vo,
+                                    HttpServletResponse res) {
 
         try {
-            //  parse() 대신 verify(String) 사용 (파싱+검증)
-            GoogleIdToken idToken = verifier.verify(idTokenString);
-            if (idToken == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Google ID token");
-            }
 
-            var payload = idToken.getPayload();
-            String sub   = payload.getSubject();
-            String email = (String) payload.get("email");
-            String name  = (String) payload.get("name");
+            // 사용자 upsert + AT/RT 발급
+            LoginDTO login = authCommandService.loginOrRegisterGoogleUser(vo.getIdToken());
 
-            // 사용자 upsert + AT/RT 발급 (네 서비스 메서드 사용)
-            var user = authCommandService.loginWithGoogle(sub, email, name);
+            String accessToken = login.getAccessToken();
+            String refreshToken = login.getRefreshToken();
 
-            return ResponseEntity.ok(Map.of(
-                    "accessToken", user.getAccessToken(),
-                    "email",       email,
-                    "nickname",    user.getNickname()
-            ));
+            CookieUtil.setRefreshCookie(res, refreshToken, jwtUtil.getRefreshTtl());
+            CookieUtil.setAccessCookie(res, accessToken, jwtUtil.getAccessTtl());
+
+            return ResponseEntity.ok(Map.of("accessToken", accessToken));
+
         } catch (GeneralSecurityException | IOException e) {
             log.error("Google verify failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Auth error");

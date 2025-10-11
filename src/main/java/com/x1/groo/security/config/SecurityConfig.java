@@ -1,6 +1,8 @@
 package com.x1.groo.security.config;
 
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import com.x1.groo.security.AuthenticationFilter;
 import com.x1.groo.security.JwtAuthenticationProvider;
 import com.x1.groo.security.JwtFilter;

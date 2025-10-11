@@ -4,7 +4,6 @@ import com.x1.groo.common.sse.SseEmitterRegistry;
 import com.x1.groo.common.sse.service.MateSseService;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
@@ -27,35 +26,21 @@ public class MateSseController {
 
     private final SseEmitterRegistry registry;
     private final MateSseService mateSseService;
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "SSE 방식 클라이언트 동기화 | 우정의 숲 이벤트 발생")
     @GetMapping( "/mate/{forestId}/events")
 //            , produces = MediaType.TEXT_EVENT_STREAM_VALUE) // 브라우저가 SSE로 인식 (브라우저가 스트림으로 파싱하도록 명시)
     public ResponseEntity<SseEmitter> subscribe(@PathVariable("forestId") int forestId,
                                                 @RequestHeader(value = "Last-Event-ID", required = false) String lastId,
-//                                                Principal principal,
-                                                @AuthenticationPrincipal CustomUserDetails user,
-                                                @RequestParam(value = "accessToken", required = false) String accessToken) {
+                                                @AuthenticationPrincipal CustomUserDetails user) {
 
 
         System.out.println("=== SSE 연결 요청 시작 ===");
         System.out.println("forestId: " + forestId);
-        System.out.println("user is null? " + (user == null));    // [CHANGED] NPE 방지: getName() 호출 제거
-
-        Integer userId = null;
-        if (user != null) {
-            userId = user.getUserId();
-        } else if (accessToken != null && jwtUtil.validationAccessToken(accessToken)) {
-            userId = jwtUtil.getUserId(jwtUtil.parserClaimsJws(accessToken));     // JWT sub = userId
-        }
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        System.out.println("principal.getUserId(): " + user.getUserId());
 
          // 접근 권한 체크
-//        boolean allowed = mateSseService.checkForestAccess(Integer.parseInt(principal.getName()), forestId);
-        boolean allowed = mateSseService.checkForestAccess(userId, forestId);
+        boolean allowed = mateSseService.checkForestAccess(user.getUserId(), forestId);
         System.out.println("권한 체크 결과: " + allowed);
 
         if (!allowed) {

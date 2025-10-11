@@ -1,6 +1,9 @@
 package com.x1.groo.auth.command.application.service;
 
-import com.x1.groo.auth.command.application.vo.GoogleLogin;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
 import com.x1.groo.auth.command.application.vo.RefreshResult;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
@@ -13,17 +16,21 @@ import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.common.domain.repository.BackgroundRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
-import com.x1.groo.forest.emotion.command.domain.repository.EmotionSharedForestRepository;
-import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
+import com.x1.groo.user.dto.LoginDTO;
+import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -42,6 +49,10 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final UserRepository userRepository;
     private final ForestRepository forestRepository;
     private final BackgroundRepository backgroundRepository;
+
+    @Value("${app.google.client-id}")
+    private String googleClientId;
+
 
     public AuthCommandServiceImpl(RefreshTokenRepository refreshTokenRepository,
                                   JwtUtil jwtUtil,
@@ -113,46 +124,95 @@ public class AuthCommandServiceImpl implements AuthCommandService{
 
     @Transactional
     @Override
-    public GoogleLogin loginWithGoogle(String sub, String email, String name) {
-        // 1) 사용자 upsert (구글 sub로 조회)
-        UserEntity user = userRepository.findByOauthProviderAndOauthId("google",sub)
-                .orElseGet(() -> {
-                    UserEntity u = new UserEntity();
-                    u.setOauthProvider("google");
-                    u.setOauthId(sub);
-                    u.setEmail(email);
-                    u.setNickname(name != null ? name : "user");
-                    return userRepository.save(u);
-                });
+    public LoginDTO loginOrRegisterGoogleUser(String idTokenString) throws GeneralSecurityException, IOException {
+
+
+        if (idTokenString == null || idTokenString.isBlank()) {
+            throw new CustomException(ErrorCode.IDTOKEN_NOT_FOUND);
+        }
+
+        // 파싱+서명/만료 검증
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier
+                .Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        // 토큰 검증
+        GoogleIdToken idToken = verifier.verify(idTokenString);
+
+        if (idToken == null) {
+            throw new CustomException(ErrorCode.INVALID_IDTOKEN);
+        }
+
+
+//        var payload = idToken.getPayload();
+        GoogleIdToken.Payload payload = idToken.getPayload();
+
+        String sub   = payload.getSubject();
+        String email = (String) payload.get("email");
+        String name  = (String) payload.get("name");
+
+
+        UserEntity user = userRepository.findByOauthProviderAndOauthId("google", sub)
+                .orElseGet(() ->
+                        userRepository.findByEmail(email)
+                                .map(u -> { // 기존 로컬 계정 → 구글 정보 연동
+                                    if (u.getOauthProvider() == null || !"google".equals(u.getOauthProvider())) {
+                                        u.setOauthProvider("google");
+                                        u.setOauthId(sub);
+                                        return userRepository.save(u);
+                                    }
+                                    return u;
+                                })
+                                .orElseGet(() -> { // 완전 신규
+                                    UserEntity u = new UserEntity();
+                                    u.setOauthProvider("google");
+                                    u.setOauthId(sub);
+                                    u.setEmail(email);
+                                    u.setNickname(name != null ? name : "user");
+                                    return userRepository.save(u);
+                                })
+                );
+
         BackgroundEntity background = backgroundRepository.findById(1)
                 .orElseThrow(() -> new CustomException(ErrorCode.BACKGROUND_NOT_FOUND));
 
-        ForestEntity forest = forestRepository.findByUser_Email(email) // <- 네 도메인에 맞게
+
+        ForestEntity forest = forestRepository.findFirstByUser_IdOrderByIdAsc(user.getId())
                 .orElseGet(() -> {
                     ForestEntity f = new ForestEntity();
-                    f.setUser(user); ;                 // owner 매핑이 있다면
-                    f.setBackground(background);      // 연관 매핑일 때
+                    f.setUser(user);
+                    f.setBackground(background);
                     f.setIsPublic(false);
                     f.setMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")));
                     f.setName(user.getNickname());
                     return forestRepository.save(f);
                 });
 
-        // 이미 숲이 있다면 배경 업데이트
-//        if (forest.getBackground() == null || !forest.getBackground().getId().equals(1)) {
-//            forest.setBackground(background);     // 연관 매핑일 때
-//            // 또는: forest.setBackgroundId(1);
-//            forestRepository.save(forest);        // (영속이면 생략 가능하지만 안전하게 저장)
-//        }
+//        RefreshToken refreshToken = refreshTokenRepository.save();
 
-        // 2) AT 발급 (네 시그니처에 맞춰 int id, email, nickname, roles)
-        String access = jwtUtil.generateAccessToken(
-                user.getId(),                             // int
+        String accessToken = jwtUtil.generateAccessToken(
+                user.getId(),
                 user.getEmail(),
                 user.getNickname(),
-                java.util.Collections.singletonList("ROLE_USER")
+                List.of(user.getRole().toString())
         );
 
-        return new GoogleLogin(user.getId(), user.getNickname(), access);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        RefreshToken newRt = new RefreshToken();
+        newRt.setUserId(user.getId());
+        newRt.setJtiHash(HashUtil.sha256(refreshToken));
+        newRt.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
+
+        refreshTokenRepository.deleteAllByUserId(user.getId());
+        refreshTokenRepository.save(newRt);
+
+        return LoginDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(new LoginUserDTO(user.getId(), user.getEmail(), user.getNickname()))
+                .roles(List.of(user.getRole().toString()))
+                .build();
     }
 }

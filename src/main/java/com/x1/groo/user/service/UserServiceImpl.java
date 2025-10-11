@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
                 .accessToken(accessToken)
                 .roles(roles)
                 .refreshToken(newRt)
-                .user(new LoginUserDTO(user.getUserId(), user.getUsername(), user.getName(), forestId))
+                .user(new LoginUserDTO(user.getUserId(), user.getUsername(), user.getName()))
                 .build();
     }
 

@@ -62,6 +62,10 @@ public enum ErrorCode {
     // forest 내 background 관련
     BACKGROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "배경을 찾을 수 없습니다."),
 
+    // google
+    IDTOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "G001", "idToken이 누락되었습니다."),
+    INVALID_IDTOKEN(HttpStatus.UNAUTHORIZED, "G002", "검증에 실패한 Google ID 토큰입니다."),
+
     // 로그
     LOG_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L001", "로그 파일 읽기 실패"),
     LOG_FILE_DOWNLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L002", "로그 파일 다운로드 실패"),
