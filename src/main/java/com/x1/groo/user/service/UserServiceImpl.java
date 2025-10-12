@@ -1,7 +1,5 @@
 package com.x1.groo.user.service;
 
-import static java.awt.SystemColor.info;
-
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
@@ -22,6 +20,7 @@ import com.x1.groo.security.vo.LoginRequestVO;
 import com.x1.groo.security.vo.LoginResponseVO;
 import com.x1.groo.user.aggregate.Role;
 import com.x1.groo.user.aggregate.UserEntity;
+import com.x1.groo.user.dto.KakaoUserInfoDTO;
 import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
@@ -53,6 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Builder
 @Slf4j
 public class UserServiceImpl implements UserService {
+
+    private static final String OAUTH_PROVIDER_KAKAO = "KAKAO";
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -208,8 +209,6 @@ public class UserServiceImpl implements UserService {
         refreshTokenRepository.deleteAllByUserId(userId);
         refreshTokenRepository.save(next);
 
-        int forestId = forestRepository.findActiveForestIdByUserId(loginUser.getId());
-
         return LoginDTO.builder()
                 .accessToken(accessToken)
                 .roles(roles)
@@ -277,5 +276,65 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         foundUser.setNickname(nickname);
+    }
+
+    @Transactional
+    public LoginDTO loginOrRegisterKakaoUser(KakaoUserInfoDTO userInfo) {
+        UserEntity user = userRepository.findByOauthProviderAndOauthId(OAUTH_PROVIDER_KAKAO, userInfo.getKakaoId().toString())
+                .orElseGet(() -> {
+                    String nickname = generateUniqueNickname(userInfo.getNickname());
+
+                    UserEntity newUser = new UserEntity();
+                    newUser.setNickname(nickname);
+                    newUser.setOauthProvider(OAUTH_PROVIDER_KAKAO);
+                    newUser.setOauthId(userInfo.getKakaoId().toString());
+
+                    UserEntity savedUser = userRepository.save(newUser);
+
+                    // 숲 자동 생성
+                    String forestName = savedUser.getNickname() + "의 숲";
+                    RequestCreateVO forestReq = new RequestCreateVO(forestName);
+                    forestService.createEmotionForest(savedUser.getId(), forestReq);
+
+                    return savedUser;
+                });
+
+        List<String> roles = List.of(user.getRole().toString());
+
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getNickname(), roles);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getId());
+
+        Jws<Claims> jws = jwtUtil.parserClaimsJws(refreshToken);
+        int userId = jwtUtil.getUserId(jws);
+        String newJti = jws.getBody().getId();
+
+        RefreshToken next = new RefreshToken();
+        next.setUserId(userId);
+        next.setJtiHash(HashUtil.sha256(newJti));
+        next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
+        refreshTokenRepository.deleteAllByUserId(userId);
+        refreshTokenRepository.save(next);
+
+        return LoginDTO.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .roles(roles)
+                .user(new LoginUserDTO(user.getId(), user.getEmail(), user.getNickname()))
+                .build();
+    }
+
+    private String generateUniqueNickname(String baseNickname) {
+        List<String> existingNicknames = userRepository.findNicknamesByBase(baseNickname);
+
+        int maxSuffix = existingNicknames.stream()
+                .map(name -> name.replace(baseNickname, ""))
+                .filter(suffix -> suffix.matches("\\d+"))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(0);
+
+        return maxSuffix == 0 && !existingNicknames.contains(baseNickname)
+                ? baseNickname
+                : baseNickname + (maxSuffix + 1);
     }
 }
