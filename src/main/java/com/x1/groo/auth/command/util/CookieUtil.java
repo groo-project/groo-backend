@@ -8,7 +8,7 @@ import java.time.Duration;
 
 public class CookieUtil {
 
-    private static final boolean PROD = false; // 운영이면 true
+    private static final boolean PROD = true; // 운영이면 true
 
     /**  AT (SSE 인증) */
     public static void setAccessCookie(HttpServletResponse res, String token, Duration maxAge) {

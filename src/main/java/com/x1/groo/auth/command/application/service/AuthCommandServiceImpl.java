@@ -50,7 +50,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final ForestRepository forestRepository;
     private final BackgroundRepository backgroundRepository;
 
-    @Value("${app.google.client-id}")
+    @Value("${google.client-id}")
     private String googleClientId;
 
 
