@@ -62,9 +62,4 @@ public class UserEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    @Column(name = "oauth_provider")
-    private String oauthProvider;
-
-    @Column(name = "oauth_id")
-    private String oauthId;
 }
