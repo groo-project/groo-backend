@@ -62,7 +62,6 @@ public class MateServiceImpl implements MateService {
         MateForestDetailDTO forestDetails = mateMapper.findForestDetail(forestId);
 
         if (forestDetails == null) {
-            log.error("Forest with id {} not found", forestId);
             throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
         }
 

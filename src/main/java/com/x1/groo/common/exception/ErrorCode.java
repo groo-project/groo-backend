@@ -20,10 +20,11 @@ public enum ErrorCode {
 
     // user
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "유저 정보를 찾을 수 없습니다."),
-    USER_EMAIL_DUPLICATE(HttpStatus.BAD_REQUEST, "U002", "이미 존재하는 이메일입니다."),
-    USER_NICKNAME_DUPLICATE(HttpStatus.BAD_REQUEST, "U003", "이미 존재하는 닉네임입니다."),
-    USER_EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "U004", "이메일 인증을 먼저 진행해 주세요."),
-    USER_EMAIL_AUTH_FAILED(HttpStatus.BAD_REQUEST, "U005", "인증 번호가 일치하지 않습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "U002","인증이 필요합니다"),
+    USER_EMAIL_DUPLICATE(HttpStatus.BAD_REQUEST, "U003", "이미 존재하는 이메일입니다."),
+    USER_NICKNAME_DUPLICATE(HttpStatus.BAD_REQUEST, "U004", "이미 존재하는 닉네임입니다."),
+    USER_EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "U005", "이메일 인증을 먼저 진행해 주세요."),
+    USER_EMAIL_AUTH_FAILED(HttpStatus.BAD_REQUEST, "U006", "인증 번호가 일치하지 않습니다."),
 
     // diary
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "존재하지 않는 일기입니다."),
@@ -60,6 +61,10 @@ public enum ErrorCode {
 
     // forest 내 background 관련
     BACKGROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "배경을 찾을 수 없습니다."),
+
+    // google
+    IDTOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "G001", "idToken이 누락되었습니다."),
+    INVALID_IDTOKEN(HttpStatus.UNAUTHORIZED, "G002", "검증에 실패한 Google ID 토큰입니다."),
 
     // 로그
     LOG_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L001", "로그 파일 읽기 실패"),

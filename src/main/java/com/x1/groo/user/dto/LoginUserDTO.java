@@ -18,4 +18,5 @@ public class LoginUserDTO {
 
     @JsonProperty
     private String nickname;
+
 }

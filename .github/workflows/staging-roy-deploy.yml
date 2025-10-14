@@ -46,6 +46,9 @@ jobs:
       KAKAO_CLIENT_SECRET: ${{ secrets.R_KAKAO_CLIENT_SECRET }}
       KAKAO_REDIRECT_URI: ${{ secrets.R_KAKAO_REDIRECT_URI }}
 
+      GOOGLE_CLIENT_ID: ${{ secrets.J_GOOGLE_CLIENT_ID }}
+
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -114,6 +117,17 @@ jobs:
             redirect-uri: ${KAKAO_REDIRECT_URI}
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
+          
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+          management:
+            endpoints:
+              web:
+                exposure:
+                  include: prometheus, health, metrics
+            metrics:
+              tags:
+                application: groo
           ---
           spring:
             config:

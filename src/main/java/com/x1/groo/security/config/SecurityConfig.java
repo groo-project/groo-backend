@@ -1,6 +1,8 @@
 package com.x1.groo.security.config;
 
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import com.x1.groo.security.AuthenticationFilter;
 import com.x1.groo.security.JwtAuthenticationProvider;
 import com.x1.groo.security.JwtFilter;
@@ -63,11 +65,11 @@ public class SecurityConfig  {
                         .permitAll()
 
                         // 모두 접근 갸능
-                        .requestMatchers("/api/auth/**",
+                        .requestMatchers(
+                                "/api/auth/**",
                                 "/api/mails/**",
                                 "/api/image/**",
                                 "/error",
-                                "/api/auth/**",
                                 "/api/sse/**")
                         .permitAll()
 

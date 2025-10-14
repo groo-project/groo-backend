@@ -3,6 +3,7 @@ package com.x1.groo.common.sse.controller;
 import com.x1.groo.common.sse.SseEmitterRegistry;
 import com.x1.groo.common.sse.service.MateSseService;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
+import com.x1.groo.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -30,15 +32,15 @@ public class MateSseController {
 //            , produces = MediaType.TEXT_EVENT_STREAM_VALUE) // 브라우저가 SSE로 인식 (브라우저가 스트림으로 파싱하도록 명시)
     public ResponseEntity<SseEmitter> subscribe(@PathVariable("forestId") int forestId,
                                                 @RequestHeader(value = "Last-Event-ID", required = false) String lastId,
-                                                Principal principal) {
+                                                @AuthenticationPrincipal CustomUserDetails user) {
 
 
         System.out.println("=== SSE 연결 요청 시작 ===");
         System.out.println("forestId: " + forestId);
-        System.out.println("principal.getName(): " + principal.getName());
+        System.out.println("principal.getUserId(): " + user.getUserId());
 
          // 접근 권한 체크
-        boolean allowed = mateSseService.checkForestAccess(Integer.parseInt(principal.getName()), forestId);
+        boolean allowed = mateSseService.checkForestAccess(user.getUserId(), forestId);
         System.out.println("권한 체크 결과: " + allowed);
 
         if (!allowed) {
