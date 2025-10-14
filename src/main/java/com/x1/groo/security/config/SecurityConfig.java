@@ -52,6 +52,9 @@ public class SecurityConfig  {
                         // health 체크
                          .requestMatchers("/", "/health/**", "/healthz", "/actuator/health").permitAll()
 
+                        // prometheus
+                        .requestMatchers("/actuator/prometheus").permitAll()
+
                          .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
