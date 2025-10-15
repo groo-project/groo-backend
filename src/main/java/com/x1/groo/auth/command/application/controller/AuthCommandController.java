@@ -95,6 +95,7 @@ public class AuthCommandController {
         }
     }
 
+    @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/withdraw")
     public ResponseEntity<Void> withdrawFromApp(@AuthenticationPrincipal CustomUserDetails user) {
 

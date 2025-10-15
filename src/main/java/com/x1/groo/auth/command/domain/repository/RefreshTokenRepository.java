@@ -1,6 +1,7 @@
 package com.x1.groo.auth.command.domain.repository;
 
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
+import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

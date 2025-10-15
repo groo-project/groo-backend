@@ -1,5 +1,6 @@
 package com.x1.groo.forest.emotion.command.domain.repository;
 
+import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.emotion.command.domain.aggregate.MailboxEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,4 +14,6 @@ public interface MailboxRepository extends JpaRepository<MailboxEntity, Integer>
     @Modifying
     @Query("UPDATE MailboxEntity m SET m.isDeleted = true WHERE m.id = :mailboxId")
     void softDeleteById(@Param("mailboxId") int mailboxId);
+
+    void deleteAllByUserId(int userId);
 }

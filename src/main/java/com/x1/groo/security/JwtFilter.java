@@ -43,7 +43,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final java.util.Set<String> SKIP_PATTERNS = java.util.Set.of(
             "/health/**", "/healthz", "/actuator/**",
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-            "/api/auth/**", "/api/mails/**", "/api/image/**"
+            "/api/auth/login", "/api/auth/register", "/api/auth/reissue",
+             "/api/mails/**", "/api/image/**"
     );
 
 
@@ -53,6 +54,8 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
 
+
+
         //  이미 인증돼 있으면 통과
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
@@ -61,6 +64,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // authorization -> accessToken
         String token = resolveAccessToken(request);
+
+        log.info("JWT Header: {}", request.getHeader("Authorization"));
+        log.info("JWT is valid: {}", jwtUtil.validationAccessToken(token));
 
         if (token == null) {
             token = getCookieValue(request, "accessToken");

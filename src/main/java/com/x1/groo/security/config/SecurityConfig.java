@@ -64,6 +64,8 @@ public class SecurityConfig  {
                                 "/v3/api-docs/**")
                         .permitAll()
 
+                        .requestMatchers("/api/auth/withdraw").authenticated()
+
                         // 모두 접근 갸능
                         .requestMatchers(
                                 "/api/auth/**",

@@ -10,12 +10,15 @@ import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.diary.repository.DiaryRepository;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.common.domain.repository.BackgroundRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
+import com.x1.groo.forest.emotion.command.domain.repository.MailboxRepository;
+import com.x1.groo.forest.emotion.command.domain.repository.UserItemRepository;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.user.dto.LoginDTO;
@@ -30,6 +33,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +47,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+//@RequiredArgsConstructor
 public class AuthCommandServiceImpl implements AuthCommandService{
 
     private final RefreshTokenRepository refreshTokenRepository;
@@ -51,23 +56,27 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final UserRepository userRepository;
     private final ForestRepository forestRepository;
     private final BackgroundRepository backgroundRepository;
+    private final DiaryRepository diaryRepository;
+    private final MailboxRepository mailboxRepository;
+    private final UserItemRepository userItemRepository;
 
     @Value("${google.client-id}")
     private String googleClientId;
 
-
-    public AuthCommandServiceImpl(RefreshTokenRepository refreshTokenRepository,
-                                  JwtUtil jwtUtil,
+    public AuthCommandServiceImpl(RefreshTokenRepository refreshTokenRepository, JwtUtil jwtUtil,
                                   UserService userService,
-                                  UserRepository userRepository,
-                                  ForestRepository forestRepository,
-                                  BackgroundRepository backgroundRepository){
+                                  UserRepository userRepository, ForestRepository forestRepository,
+                                  BackgroundRepository backgroundRepository, DiaryRepository diaryRepository,
+                                  MailboxRepository mailboxRepository, UserItemRepository userItemRepository){
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
         this.userRepository = userRepository;
         this.forestRepository = forestRepository;
         this.backgroundRepository = backgroundRepository;
+        this.diaryRepository = diaryRepository;
+        this.mailboxRepository = mailboxRepository;
+        this.userItemRepository = userItemRepository;
     }
 
     @Override
@@ -219,11 +228,17 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     @Transactional
     @Override
     public void withdraw(int userId) {
+
         UserEntity user = userRepository.findById(userId)
                         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        user.setIsDeleted(true);
 
+        diaryRepository.deleteAllByUserId(userId);
+        mailboxRepository.deleteAllByUserId(userId);
+        userItemRepository.deleteAllByUser(user);
+        forestRepository.deleteAllByUser(user);
         refreshTokenRepository.deleteAllByUserId(userId);
+
+        userRepository.delete(user);
 
     }
 }
