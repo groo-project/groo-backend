@@ -11,4 +11,6 @@ public interface AuthCommandService {
     RefreshResult refresh(String rt);
 
     LoginDTO loginOrRegisterGoogleUser(String idTokenString) throws GeneralSecurityException, IOException;
+
+    void withdraw(int userId);
 }

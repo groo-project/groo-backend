@@ -7,6 +7,7 @@ import com.x1.groo.user.dto.KakaoUserInfoDTO;
 import com.x1.groo.user.dto.LoginDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.vo.FindPasswordRequestVO;
+import com.x1.groo.user.vo.ResetPasswordRequestVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -40,4 +41,6 @@ public interface UserService extends UserDetailsService {
     void findPassword(FindPasswordRequestVO findPasswordRequestVO);
 
     LoginDTO loginOrRegisterKakaoUser(KakaoUserInfoDTO userInfo);
+
+    void resetPassword(int userId, ResetPasswordRequestVO vo);
 }

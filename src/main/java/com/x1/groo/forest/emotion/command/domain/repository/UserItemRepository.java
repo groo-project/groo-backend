@@ -1,5 +1,6 @@
 package com.x1.groo.forest.emotion.command.domain.repository;
 
+import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.emotion.command.domain.aggregate.UserItemEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +13,6 @@ public interface UserItemRepository extends JpaRepository<UserItemEntity, Intege
     List<UserItemEntity> findByUserIdAndForestId(int userId, int forestId);
 
     Optional<UserItemEntity> findByUserIdAndItemIdAndForestId(int userId, int itemId, int forestId);
+
+    void deleteAllByUser(UserEntity user);
 }

@@ -43,7 +43,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final java.util.Set<String> SKIP_PATTERNS = java.util.Set.of(
             "/health/**", "/healthz", "/actuator/**",
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
-            "/api/auth/**", "/api/mails/**", "/api/image/**"
+            "/api/auth/login", "/api/auth/register", "/api/auth/reissue",
+             "/api/mails/**", "/api/image/**"
     );
 
 
@@ -52,6 +53,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
+
+
 
         //  이미 인증돼 있으면 통과
         if (SecurityContextHolder.getContext().getAuthentication() != null) {

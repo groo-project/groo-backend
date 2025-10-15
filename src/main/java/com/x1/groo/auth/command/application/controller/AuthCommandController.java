@@ -10,6 +10,7 @@ import com.x1.groo.auth.command.application.service.AuthCommandService;
 import com.x1.groo.auth.command.util.CookieUtil;
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.user.dto.LoginDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -69,6 +71,7 @@ public class AuthCommandController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation( summary = "구글 로그인")
     @PostMapping("/google")
     public ResponseEntity<?> google(@RequestBody GoogleLoginRequestVO vo,
                                     HttpServletResponse res) {
@@ -90,6 +93,16 @@ public class AuthCommandController {
             log.error("Google verify failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Auth error");
         }
+    }
+
+    @Operation(summary = "회원 탈퇴")
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<Void> withdrawFromApp(@AuthenticationPrincipal CustomUserDetails user) {
+
+        int userId = user.getUserId();
+        authCommandService.withdraw(userId);
+
+        return ResponseEntity.noContent().build();
     }
 
 
