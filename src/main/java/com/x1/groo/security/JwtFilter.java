@@ -65,9 +65,6 @@ public class JwtFilter extends OncePerRequestFilter {
         // authorization -> accessToken
         String token = resolveAccessToken(request);
 
-        log.info("JWT Header: {}", request.getHeader("Authorization"));
-        log.info("JWT is valid: {}", jwtUtil.validationAccessToken(token));
-
         if (token == null) {
             token = getCookieValue(request, "accessToken");
         }
