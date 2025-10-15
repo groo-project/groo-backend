@@ -26,6 +26,7 @@ import com.x1.groo.user.dto.LoginUserDTO;
 import com.x1.groo.user.dto.UserDTO;
 import com.x1.groo.user.repository.UserRepository;
 import com.x1.groo.user.vo.FindPasswordRequestVO;
+import com.x1.groo.user.vo.ResetPasswordRequestVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -262,6 +263,17 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         redisUtil.deleteData(findPasswordRequestVO.getEmail());
+
+    }
+
+    @Transactional
+    @Override
+    public void resetPassword(int userId, ResetPasswordRequestVO vo) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        user.setPassword(bCryptPasswordEncoder.encode(vo.getPassword()));
+
 
     }
 

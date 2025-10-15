@@ -9,6 +9,7 @@ import com.x1.groo.user.service.KakaoOAuthService;
 import com.x1.groo.user.service.UserService;
 import com.x1.groo.user.vo.FindPasswordRequestVO;
 import com.x1.groo.user.vo.KakaoLoginRequestVO;
+import com.x1.groo.user.vo.ResetPasswordRequestVO;
 import com.x1.groo.user.vo.ResponsefindUserVO;
 import com.x1.groo.user.vo.SignupRequestVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -99,13 +100,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(findUserVO);
     }
 
-    @Operation(summary = "비밀번호 찾기")
-    @PostMapping("/auth/password")
+    @Operation(summary = "비밀번호 재설정")
+    @PostMapping("/auth/password/reset")
     public ResponseEntity<Void> findPassword(@RequestBody FindPasswordRequestVO findPasswordRequestVO) {
         userService.findPassword(findPasswordRequestVO);
 
         return ResponseEntity.ok().build();
     }
+
+
     ///////////////// }
 
     @Operation(summary = "닉네임 변경")
@@ -115,5 +118,14 @@ public class UserController {
         userService.updateNickname(user.getUserId(), dto.getNickname());
 
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "비밀번호 변경")
+    @PatchMapping("/user/me/password")
+    public ResponseEntity<Void> restPassword(@AuthenticationPrincipal CustomUserDetails user,
+                                             @RequestBody ResetPasswordRequestVO vo) {
+        userService.resetPassword(user.getUserId(), vo);
+
+        return ResponseEntity.noContent().build();
     }
 }
