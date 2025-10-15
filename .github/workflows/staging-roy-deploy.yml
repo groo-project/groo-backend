@@ -120,6 +120,14 @@ jobs:
           
           google:
             client-id: ${GOOGLE_CLIENT_ID}
+          management:
+            endpoints:
+              web:
+                exposure:
+                  include: prometheus, health, metrics
+            metrics:
+              tags:
+                application: groo
           ---
           spring:
             config:
