@@ -4,6 +4,7 @@ import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.email.aggregate.EmailEntity;
 import com.x1.groo.email.config.RedisUtil;
+import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.repository.EmailRepository;
 import com.x1.groo.user.service.UserService;
 import jakarta.mail.MessagingException;
@@ -101,11 +102,12 @@ public class EmailServiceImpl implements EmailService {
         redisUtil.setDataExpire(toMail, Integer.toString(authNumber), authCodeExpirationMillis / 60000);
     }
 
+    @Transactional
     @Override
     public String findPassword(String email) {
         makeRandomNumber();
         String setFrom = "\"Groo Admin\" <x1grooservice@gmail.com>";
-        String title = "Groo 회원 가입 인증 이메일 입니다.";
+        String title = "Groo 비밀번호 재설정 인증 이메일 입니다.";
 
         EmailEntity entity = new EmailEntity();
         entity.setEmail(email);
@@ -128,5 +130,37 @@ public class EmailServiceImpl implements EmailService {
             throw new CustomException(ErrorCode.EMAIL_TEMPLATE_LOAD_FAIL, e);
         }
 
+    }
+
+    @Transactional
+    public String withdraw(String email, EmailCheckDTO emailCheckDto) {
+
+        emailRepository.deleteAllByEmail(emailCheckDto.getEmail());
+        emailRepository.flush();
+
+        makeRandomNumber();
+        String setFrom = "\"Groo Admin\" <x1grooservice@gmail.com>";
+        String title = "Groo 회원 탈퇴 인증 이메일 입니다.";
+
+        EmailEntity entity = new EmailEntity();
+        entity.setEmail(email);
+        entity.setVerificationCode(String.valueOf(authNumber));
+
+        try {
+            // HTML 템플릿 로드
+            String content = loadHtmlTemplate("template/email/withdraw.html");
+
+            // 템플릿에 인증 번호 삽입
+            content = content.replace("${authNumber}", String.valueOf(authNumber));
+
+            // 이메일 발송
+            mailSend(setFrom, email, title, content);
+
+            emailRepository.save(entity);
+
+            return Integer.toString(authNumber);
+        } catch (IOException e) {
+            throw new CustomException(ErrorCode.EMAIL_TEMPLATE_LOAD_FAIL, e);
+        }
     }
 }

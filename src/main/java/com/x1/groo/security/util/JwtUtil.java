@@ -120,10 +120,8 @@ public class JwtUtil {
         }
         int userId = Integer.parseInt(claims.getSubject());
 
-
-        String email = claims.getSubject();
+        String email = claims.get("email", String.class);
         String nickname = claims.get("nickname", String.class);
-
 
         UserDTO dto = UserDTO.builder()
                 .id(userId)

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class RefreshResult {
+public class RefreshResultVO {
 
     private final String accessToken;
     private final String newRefreshToken;

@@ -62,22 +62,6 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
         int userId = principal.getUserId();
-//        // principal 꺼내기
-//        Object principalObj = authResult.getPrincipal();
-//
-//        if (principalObj instanceof CustomUserDetails) {
-//            CustomUserDetails principal = (CustomUserDetails) principalObj;
-//            int userId = principal.getUserId();          // ✅ 여기서 userId 얻음
-//        } else if (principalObj instanceof org.springframework.security.core.userdetails.UserDetails) {
-//            // 커스텀이 아닌 기본 UserDetails라면 id가 없으니, username(=email)로 DB 조회해서 id 얻기
-//            org.springframework.security.core.userdetails.UserDetails principal =
-//                    (org.springframework.security.core.userdetails.UserDetails) principalObj;
-//            int userId = userService.findIdByEmail(email);   // 너의 서비스 메서드 이름에 맞춰서
-//        } else if (principalObj instanceof String) {
-//            // 드물게 principal이 String(username)일 수 있음
-//            String username = (String) principalObj;
-//            int userId = userService.findIdByEmail(username);
-//        }
 
         List<String> roles = authResult.getAuthorities().stream()
 //                .map(role -> role.getAuthority())
