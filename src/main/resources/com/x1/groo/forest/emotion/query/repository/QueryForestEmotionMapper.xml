@@ -64,7 +64,9 @@
         <id property="diaryId" column="diary_id"/>
         <result property="content" column="content"/>
         <result property="createdAt" column="created_at"/>
-        <collection property="emotions" ofType="string" column="diary_id" select="findEmotionsByDiaryId"/>
+        <collection property="emotions" ofType="string">
+            <result column="emotion_name" />
+        </collection>
     </resultMap>
 
     <resultMap id="DiaryByMonthResultMap" type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDiaryByMonthDTO">
@@ -165,16 +167,19 @@
     </select>
 
     <select id="findDiaryByDateAndForestId" resultMap="DiaryWithEmotionResultMap">
-        SELECT DISTINCT
-            d.id AS diary_id
-                      , d.content
-                      , d.created_at
-        FROM diary d
-                 JOIN user u ON d.user_id = u.id
-                 JOIN forest f ON d.forest_id = f.id
-                 LEFT JOIN shared_forest sf ON f.id = sf.forest_id
-        WHERE f.id = #{forestId}
-          AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+        SELECT
+               d.id AS diary_id
+             , d.content
+             , d.created_at
+             , de.emotion AS emotion_name
+          FROM diary d
+          JOIN user u ON d.user_id = u.id
+          JOIN forest f ON d.forest_id = f.id
+          LEFT JOIN shared_forest sf ON f.id = sf.forest_id
+          LEFT JOIN diary_emotion de ON d.id = de.diary_id
+         WHERE f.id = #{forestId}
+           AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
+         ORDER BY d.id DESC
     </select>
 
     <select id="findDiariesByMonth" resultMap="DiaryByMonthResultMap">
@@ -198,11 +203,4 @@
         WHERE user_id = #{userId}
           AND forest_id = #{forestId}
     </select>
-
-    <select id="findEmotionsByDiaryId" resultType="string">
-        SELECT emotion
-        FROM diary_emotion
-        WHERE diary_id = #{diary_id}
-    </select>
-
 </mapper>
