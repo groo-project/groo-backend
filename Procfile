@@ -1,1 +1,1 @@
-web: java -jar -Dserver.port=${PORT:-5000} application.jar
+web: java -jar -Dserver.port=${PORT:-5000} -Duser.timezone=Asia/Seoul application.jar
