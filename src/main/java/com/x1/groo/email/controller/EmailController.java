@@ -48,12 +48,11 @@ public class EmailController {
 
     @Operation(summary = "회원 탈퇴 인증 코드 전송")
     @PostMapping("/withdrawal")
-    public String withdrawMailSend(@AuthenticationPrincipal CustomUserDetails user,
-                                   EmailCheckDTO emailCheckDto) {
+    public String withdrawMailSend(@AuthenticationPrincipal CustomUserDetails user) {
         if(!userService.findByEmail(user.getUsername())){
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
-        return mailService.withdraw(user.getUsername(), emailCheckDto);
+        return mailService.withdraw(user.getUsername());
     }
 
     @Operation(summary = "인증 코드 일치 여부 확인")

@@ -133,10 +133,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Transactional
-    public String withdraw(String email, EmailCheckDTO emailCheckDto) {
-
-        emailRepository.deleteAllByEmail(emailCheckDto.getEmail());
-        emailRepository.flush();
+    public String withdraw(String email) {
 
         makeRandomNumber();
         String setFrom = "\"Groo Admin\" <x1grooservice@gmail.com>";
