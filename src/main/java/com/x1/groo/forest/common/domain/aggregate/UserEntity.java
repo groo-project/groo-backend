@@ -44,8 +44,6 @@ public class UserEntity {
     @Column(name = "nickname", nullable = false, unique = true)
     private String nickname;
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
 
     public enum Role { COMMON, ADMIN }
 }

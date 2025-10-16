@@ -58,8 +58,4 @@ public class UserEntity {
     @Column(name = "birth")
     private LocalDateTime birth;
 
-    @Builder.Default
-    @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted = false;
-
 }
