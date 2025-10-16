@@ -5,12 +5,13 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.x1.groo.auth.command.application.aggregate.RefreshToken;
-import com.x1.groo.auth.command.application.vo.RefreshResult;
+import com.x1.groo.auth.command.application.vo.RefreshResultVO;
 import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.diary.repository.DiaryRepository;
+import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
@@ -55,6 +56,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final DiaryRepository diaryRepository;
     private final MailboxRepository mailboxRepository;
     private final UserItemRepository userItemRepository;
+    private final RedisUtil redisUtil;
 
     @Value("${google.client-id}")
     private String googleClientId;
@@ -63,7 +65,8 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                                   UserService userService,
                                   UserRepository userRepository, ForestRepository forestRepository,
                                   BackgroundRepository backgroundRepository, DiaryRepository diaryRepository,
-                                  MailboxRepository mailboxRepository, UserItemRepository userItemRepository){
+                                  MailboxRepository mailboxRepository, UserItemRepository userItemRepository,
+                                  RedisUtil redisUtil){
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
@@ -73,11 +76,12 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         this.diaryRepository = diaryRepository;
         this.mailboxRepository = mailboxRepository;
         this.userItemRepository = userItemRepository;
+        this.redisUtil = redisUtil;
     }
 
     @Override
     @Transactional
-    public RefreshResult refresh(String rt) {
+    public RefreshResultVO refresh(String rt) {
 
         Jws<Claims> jws = jwtUtil.parserClaimsJws(rt);
         String typ = jws.getBody().get("typ", String.class);
@@ -96,7 +100,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         java.util.Optional<RefreshToken> opt = refreshTokenRepository.findByUserId(subjectUserId);
 
         if (opt.isEmpty()) {
-            log.error("RT_NOT_FOUND_OR_REUSED: JTI hash {} not found in database", HashUtil.sha256(jti));
             throw new BadCredentialsException("RT_NOT_FOUND_OR_REUSED");
         }
 
@@ -125,8 +128,8 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), user.getNickname(), roles);
-        return new RefreshResult(accessToken, newRt, jwtUtil.getRefreshTtl());
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getUsername(), user.getNickname(), roles);
+        return new RefreshResultVO(accessToken, newRt, jwtUtil.getRefreshTtl());
     }
 
     @Transactional
@@ -223,18 +226,26 @@ public class AuthCommandServiceImpl implements AuthCommandService{
 
     @Transactional
     @Override
-    public void withdraw(int userId) {
+    public void withdraw(CustomUserDetails user) {
 
-        UserEntity user = userRepository.findById(userId)
+        int userId = user.getUserId();
+
+        UserEntity entity = userRepository.findById(userId)
                         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 이메일 인증
+        log.info("getName: {}, getUsername: {}", user.getName(), user.getUsername());
+        if (!redisUtil.exists(user.getUsername())) {
+            throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
+        }
 
         diaryRepository.deleteAllByUserId(userId);
         mailboxRepository.deleteAllByUserId(userId);
-        userItemRepository.deleteAllByUser(user);
-        forestRepository.deleteAllByUser(user);
+        userItemRepository.deleteAllByUser(entity);
+        forestRepository.deleteAllByUser(entity);
         refreshTokenRepository.deleteAllByUserId(userId);
 
-        userRepository.delete(user);
+        userRepository.delete(entity);
 
     }
 }

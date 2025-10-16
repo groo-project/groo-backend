@@ -147,11 +147,7 @@ public class UserServiceImpl implements UserService {
 
         String email = emailCheckDto.getEmail();
 
-        EmailEntity entity = emailRepository.findByEmail(email);
-
-//        if (userRepository.existsByEmail(email)) {
-//            throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
-//        }
+        EmailEntity entity = emailRepository.findFirstByEmailOrderByCreatedAtDesc(email);
 
         String storedAuthNum = entity.getVerificationCode();
         if (storedAuthNum == null || !storedAuthNum.equals(emailCheckDto.getAuthNum())) {

@@ -43,4 +43,5 @@ public interface UserService extends UserDetailsService {
     LoginDTO loginOrRegisterKakaoUser(KakaoUserInfoDTO userInfo);
 
     void resetPassword(int userId, ResetPasswordRequestVO vo);
+
 }

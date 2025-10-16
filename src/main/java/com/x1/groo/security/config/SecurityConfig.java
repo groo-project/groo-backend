@@ -68,6 +68,7 @@ public class SecurityConfig  {
                         .permitAll()
 
                         .requestMatchers("/api/auth/withdraw").authenticated()
+                        .requestMatchers("/api/mails/withdrawal").authenticated()
 
                         // 모두 접근 갸능
                         .requestMatchers(

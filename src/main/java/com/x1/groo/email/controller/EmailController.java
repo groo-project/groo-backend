@@ -5,6 +5,7 @@ import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.email.dto.EmailCheckDTO;
 import com.x1.groo.email.service.EmailServiceImpl;
 import com.x1.groo.email.vo.EmailRequestVO;
+import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,15 @@ public class EmailController {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         return mailService.findPassword(req.getEmail());
+    }
+
+    @Operation(summary = "회원 탈퇴 인증 코드 전송")
+    @PostMapping("/withdrawal")
+    public String withdrawMailSend(@AuthenticationPrincipal CustomUserDetails user) {
+        if(!userService.findByEmail(user.getUsername())){
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        return mailService.withdraw(user.getUsername());
     }
 
     @Operation(summary = "인증 코드 일치 여부 확인")
