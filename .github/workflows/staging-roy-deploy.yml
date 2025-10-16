@@ -3,7 +3,7 @@ name: Staging Roy Deploy
 on:
   push:
     branches:
-      - staging/roy
+      - develop
 
 jobs:
   build-and-deploy:
