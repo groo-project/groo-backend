@@ -10,7 +10,7 @@ import com.x1.groo.auth.command.domain.repository.RefreshTokenRepository;
 import com.x1.groo.auth.command.util.HashUtil;
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
-import com.x1.groo.diary.repository.DiaryRepository;
+import com.x1.groo.diary.command.domain.repository.DiaryRepository;
 import com.x1.groo.email.config.RedisUtil;
 import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;

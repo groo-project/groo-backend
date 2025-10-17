@@ -1,7 +1,6 @@
 package com.x1.groo.forest.emotion.query.controller;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.forest.emotion.query.dto.*;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "감정숲")
@@ -95,33 +93,5 @@ public class QueryForestEmotionController {
 
         List<QueryForestEmotionListDTO> result = queryForestEmotionService.getForestList(userId);
         return ResponseEntity.ok(result);
-    }
-
-    @Operation(summary = "날짜별 일기 조회")
-    @GetMapping("/diary/{forestId}/date")
-    public ResponseEntity<List<QueryForestEmotionDiaryByDateDTO>> getDiariesByDate(
-            @AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable int forestId,
-            @RequestParam LocalDate date
-    ) {
-        int userId = user.getUserId();
-
-        // 서비스 호출
-        List<QueryForestEmotionDiaryByDateDTO> diaries = queryForestEmotionService.findDiaries(userId, forestId, date);
-        return ResponseEntity.ok(diaries);
-    }
-
-    @Operation(summary = "월별 일기 조회")
-    @GetMapping("/diary/{forestId}/month")
-    public ResponseEntity<List<QueryForestEmotionDiaryByMonthDTO>> getDiariesByMonth(
-            @AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable int forestId,
-            @RequestParam int year,
-            @RequestParam int month
-    ) {
-        int userId = user.getUserId();
-
-        List<QueryForestEmotionDiaryByMonthDTO> diaries = queryForestEmotionService.findDiariesByMonth(userId, forestId, year, month);
-        return ResponseEntity.ok(diaries);
     }
 }
