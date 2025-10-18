@@ -41,10 +41,6 @@ public class QueryForestEmotionController {
 
         List<QueryForestEmotionUserItemDTO> items = queryForestEmotionService.getPieceOfMemory(userId, categoryId, forestId);
 
-        if (items == null || items.isEmpty()) {
-            return ResponseEntity.ok(items);
-        }
-
         return ResponseEntity.ok(items);
     }
 
