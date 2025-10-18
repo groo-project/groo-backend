@@ -4,63 +4,12 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.x1.groo.forest.mate.query.dao.MateMapper">
 
-    <!-- resultMap 정의 -->
-    <resultMap id="DiaryWithEmotionResultMap" type="com.x1.groo.forest.mate.query.dto.DiaryByDateDTO">
-        <id property="diaryId" column="diary_id"/>
-        <result property="nickname" column="nickname"/>
-        <result property="content" column="content"/>
-        <result property="createdAt" column="created_at"/>
-        <collection property="emotions" ofType="string" column="diary_id" select="findEmotionsByDiaryId"/>
-    </resultMap>
-    
-    <!-- 날짜별 일기 조회 -->
-    <select id="findDiaryByDateAndForestId" resultMap="DiaryWithEmotionResultMap">
-        SELECT DISTINCT
-               d.id AS diary_id
-             , u.nickname
-             , d.content
-             , d.created_at
-          FROM diary d
-          JOIN user u ON d.user_id = u.id
-          JOIN forest f ON d.forest_id = f.id
-          LEFT JOIN shared_forest sf ON f.id = sf.forest_id
-         WHERE f.id = #{forestId}
-           AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
-    </select>
-    
-    
-    <!--    월별 일기 조회 -->
-    <resultMap id="DiaryByMonthResultMap" type="com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO">
-        <id property="diaryId" column="id"/>
-        <result property="createdAt" column="created_at"/>
-    </resultMap>
-    
-    <select id="findDiariesByMonth" resultMap="DiaryByMonthResultMap">
-        SELECT
-               d.id
-             , d.created_at
-          FROM diary d
-         WHERE d.forest_id = #{forestId}
-           AND d.created_at BETWEEN #{startDateTime} AND #{endDateTime}
-    </select>
-    
-    
     <!-- diary_id에 해당하는 감정 리스트 조회 -->
     <select id="findEmotionsByDiaryId" resultType="string">
         SELECT emotion
           FROM diary_emotion
          WHERE diary_id = #{diary_id}
     </select>
-    
-    <!-- 유저의 입장 여부 확인 -->
-    <select id="existsUserInForest" resultType="boolean">
-        SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
-          FROM shared_forest
-         WHERE user_id = #{userId}
-           AND forest_id = #{forestId}
-    </select>
-    
-
     
     <!--    우정의 숲 상세 조회 -->
     <resultMap id="MateForestDetailResultMap" type="com.x1.groo.forest.mate.query.dto.MateForestDetailDTO">
@@ -127,4 +76,25 @@
          ORDER BY f.id
     </select>
 
+    <!-- 우정의 숲 보유 아이템 조회 -->
+    <select id="getPieceOfMemory" resultType="com.x1.groo.forest.mate.query.dto.MateItemDTO">
+        SELECT
+               ui.id AS id
+             , ui.item_id AS itemId
+             , ui.total_count AS totalCount
+             , ui.placed_count AS placedCount
+             , i.`name` AS itemName
+             , i.category_id AS categoryId
+             , i.image_url AS imageUrl
+          FROM user_item ui
+          JOIN item i ON ui.item_id = i.id
+          JOIN forest f ON ui.forest_id = f.id
+         WHERE ui.forest_id = #{forestId}
+           AND i.category_id = #{categoryId}
+           AND EXISTS (
+               SELECT 1
+                 FROM shared_forest sf
+                WHERE sf.forest_id = f.id
+               )
+    </select>
 </mapper>

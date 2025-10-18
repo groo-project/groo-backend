@@ -3,16 +3,13 @@ package com.x1.groo.forest.mate.query.service;
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.forest.mate.query.dao.MateMapper;
-import com.x1.groo.forest.mate.query.dto.DiaryByDateDTO;
-import com.x1.groo.forest.mate.query.dto.DiaryByMonthDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
+import com.x1.groo.forest.mate.query.dto.MateItemDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -21,36 +18,6 @@ import java.util.List;
 public class MateServiceImpl implements MateService {
 
     private final MateMapper mateMapper;
-
-    @Override
-    public List<DiaryByDateDTO> findDiaries(int userId, int forestId, LocalDate date) {
-
-        // userId가 forestId에 속하는지 확인
-        if (!mateMapper.existsUserInForest(userId, forestId)) {
-            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
-        }
-
-        // 날짜 범위 생성
-        LocalDateTime startDateTime = date.atStartOfDay();      // 00:00:00
-        LocalDateTime endDateTime = date.atTime(23, 59, 59);    // 23:59:59
-
-        // 일기 리스트 조회
-        return mateMapper.findDiaryByDateAndForestId(forestId, startDateTime, endDateTime);
-    }
-
-    @Override
-    public List<DiaryByMonthDTO> findDiariesByMonth(int userId, int forestId, int year, int month) {
-        if (!mateMapper.existsUserInForest(userId, forestId)) {
-            throw new CustomException(ErrorCode.FOREST_ACCESS_DENIED);
-        }
-
-        LocalDateTime startDateTime = LocalDate.of(year, month, 1).atStartOfDay();
-        LocalDateTime endDateTime = startDateTime
-                .withDayOfMonth(startDateTime.toLocalDate().lengthOfMonth())
-                .withHour(23).withMinute(59).withSecond(59);
-
-        return mateMapper.findDiariesByMonth(forestId, startDateTime, endDateTime);
-    }
 
     @Override
     public List<MateForestResponseDTO> getForestsByUserId(int userId) {
@@ -74,4 +41,8 @@ public class MateServiceImpl implements MateService {
         return forestDetails;
     }
 
+    @Override
+    public List<MateItemDTO> getPieceOfMemory(int userId, int categoryId, int forestId) {
+        return mateMapper.getPieceOfMemory(userId, categoryId, forestId);
+    }
 }

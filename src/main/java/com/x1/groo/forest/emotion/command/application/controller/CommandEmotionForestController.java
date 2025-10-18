@@ -1,10 +1,8 @@
 package com.x1.groo.forest.emotion.command.application.controller;
 
 import com.x1.groo.security.CustomUserDetails;
-import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.forest.emotion.command.application.service.CommandEmotionForestService;
 import com.x1.groo.forest.emotion.command.domain.vo.*;
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +21,15 @@ import java.util.Map;
 public class CommandEmotionForestController {
 
     private final CommandEmotionForestService commandEmotionForestService;
-    private final JwtUtil jwtUtil;
 
     @Autowired
-    public CommandEmotionForestController(CommandEmotionForestService commandEmotionForestService,
-                                          JwtUtil jwtUtil) {
+    public CommandEmotionForestController(CommandEmotionForestService commandEmotionForestService) {
         this.commandEmotionForestService = commandEmotionForestService;
-        this.jwtUtil = jwtUtil;
     }
 
     /**
      * 아이템 회수
-     * @param authorizationHeader 토큰
+     * @param user 회원 정보
      * @param placementIds 배치된 아이템 배치 id 목록
      * @return 정상 처리 시 200 반환
      */
@@ -53,7 +48,7 @@ public class CommandEmotionForestController {
 
     /**
      * 아이템 전체 회수
-     * @param authorizationHeader 토큰
+     * @param user 회원 정보
      * @param forestId 전체 회수를 진행 할 숲 id
      * @return 정상 처리 시 200 반환
      */
@@ -72,7 +67,7 @@ public class CommandEmotionForestController {
 
     /**
      * 아이템 배치
-     * @param authorizationHeader 토큰
+     * @param user 회원 정보
      * @param requestPlacementVO 배치할 아이템 정보 요청 객체
      * @return 정상 처리 시 200 반환
      */
@@ -91,7 +86,7 @@ public class CommandEmotionForestController {
 
     /**
      * 배치된 아이템 재배치
-     * @param authorizationHeader 토큰
+     * @param user 회원 정보
      * @param replacementVOList 재배치할 아이템 정보 요청 객체 목록
      * @return 정상 처리 시 200 반환
      */
@@ -109,7 +104,7 @@ public class CommandEmotionForestController {
 
     /**
      * 보관된 아이템 배치
-     * @param authorizationHeader 토큰
+     * @param user 회원 정보
      * @param requestReplantVO 배치 및 보관된 아이템 정보
      * @return 정상 처리 시 200 반환
      */

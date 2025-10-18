@@ -190,7 +190,7 @@ public class UserServiceImpl implements UserService {
 
 
         //  AT 발급
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getName(), user.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getNickname(), user.getNickname(), roles);
 
         //  RT 발급 & 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());
