@@ -179,7 +179,8 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                                     u.setOauthProvider("google");
                                     u.setOauthId(sub);
                                     u.setEmail(email);
-                                    u.setNickname(name != null ? name : "user");
+                                    u.setNickname(generateUniqueNickname(name));
+
                                     return userRepository.save(u);
                                 })
                 );
@@ -222,6 +223,21 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .user(new LoginUserDTO(user.getId(), user.getEmail(), user.getNickname()))
                 .roles(List.of(user.getRole().toString()))
                 .build();
+    }
+
+    private String generateUniqueNickname(String baseNickname) {
+        List<UserEntity> existingNickname = userRepository.findAllByNicknameStartingWith(baseNickname);
+
+        int maxSuffix = existingNickname.stream()
+                .map(u -> u.getNickname().replace("baseNickname", ""))
+                .filter(suffix -> suffix.matches("\\d+"))
+                .mapToInt(Integer::parseInt)
+                .max()
+                .orElse(0);
+
+                return maxSuffix == 0 && existingNickname.contains(baseNickname)
+                        ? baseNickname : baseNickname + (maxSuffix + 1);
+
     }
 
     @Transactional

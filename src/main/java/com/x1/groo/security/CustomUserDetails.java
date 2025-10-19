@@ -16,13 +16,6 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
-    // 🔧 추가: DTO -> UserDetails 변환 헬퍼
-//    public static CustomUserDetails from(UserDTO dto) {
-//        return CustomUserDetails.builder()
-//                .user(dto)   // ✅ 빌더에는 user(...)만 존재
-//                .build();
-//    }
-
     // DTO -> UserDetails 헬퍼
     public static CustomUserDetails from(UserDTO dto) {
         return new CustomUserDetails(dto);
