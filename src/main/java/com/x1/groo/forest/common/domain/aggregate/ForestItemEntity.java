@@ -1,7 +1,5 @@
-package com.x1.groo.forest.emotion.command.domain.aggregate;
+package com.x1.groo.forest.common.domain.aggregate;
 
-import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
-import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,25 +9,22 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-@Table(name="user_item")
-public class UserItemEntity {
+@Table(name="forest_item")
+public class ForestItemEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
-    @Column(name="item_id")
-    private int itemId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id")
-    private UserEntity user;
+    @Column(name="id")
+    private Integer id;
 
     @Column(name="total_count")
     private int totalCount;
 
     @Column(name="placed_count")
     private int placedCount;
+
+    @Column(name="item_id")
+    private int itemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="forest_id")

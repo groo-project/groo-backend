@@ -16,10 +16,10 @@ import com.x1.groo.forest.common.domain.aggregate.BackgroundEntity;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import com.x1.groo.forest.common.domain.repository.BackgroundRepository;
+import com.x1.groo.forest.common.domain.repository.ForestItemRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
 import com.x1.groo.forest.emotion.command.domain.repository.MailboxRepository;
-import com.x1.groo.forest.emotion.command.domain.repository.UserItemRepository;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.user.dto.LoginDTO;
@@ -30,8 +30,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +54,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final BackgroundRepository backgroundRepository;
     private final DiaryRepository diaryRepository;
     private final MailboxRepository mailboxRepository;
-    private final UserItemRepository userItemRepository;
+    private final ForestItemRepository forestItemRepository;
     private final RedisUtil redisUtil;
 
     @Value("${google.client-id}")
@@ -65,7 +64,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                                   UserService userService,
                                   UserRepository userRepository, ForestRepository forestRepository,
                                   BackgroundRepository backgroundRepository, DiaryRepository diaryRepository,
-                                  MailboxRepository mailboxRepository, UserItemRepository userItemRepository,
+                                  MailboxRepository mailboxRepository, ForestItemRepository forestItemRepository,
                                   RedisUtil redisUtil){
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtUtil = jwtUtil;
@@ -75,7 +74,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         this.backgroundRepository = backgroundRepository;
         this.diaryRepository = diaryRepository;
         this.mailboxRepository = mailboxRepository;
-        this.userItemRepository = userItemRepository;
+        this.forestItemRepository = forestItemRepository;
         this.redisUtil = redisUtil;
     }
 
@@ -194,7 +193,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                     f.setUser(user);
                     f.setBackground(background);
                     f.setIsPublic(false);
-                    f.setMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")));
+                    f.setCreatedAt(LocalDateTime.now());
                     f.setName(user.getNickname());
                     return forestRepository.save(f);
                 });
@@ -227,6 +226,12 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     @Transactional
     @Override
     public void withdraw(CustomUserDetails user) {
+        /*
+            공유 숲을 소유한 user가 탈퇴 시 shared_forest에 해당 forest_id가 동일한 user가 남아있으면
+            (공유 숲에 남은 인원이 있으면) forest 테이블의 user_id를 남은 user의 id로 바꾸는 로직 필요
+
+            만약 남은 인원이 없다면 모두 삭제하는 로직 필요(개인 숲은 그냥 다 삭제)
+        */
 
         int userId = user.getUserId();
 
@@ -241,7 +246,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
 
         diaryRepository.deleteAllByUserId(userId);
         mailboxRepository.deleteAllByUserId(userId);
-        userItemRepository.deleteAllByUser(entity);
         forestRepository.deleteAllByUser(entity);
         refreshTokenRepository.deleteAllByUserId(userId);
 

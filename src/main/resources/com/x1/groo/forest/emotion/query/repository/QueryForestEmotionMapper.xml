@@ -3,8 +3,8 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper">
-    <resultMap id="QueryForestUserItemResultMap"
-               type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO">
+    <resultMap id="QueryForestItemResultMap"
+               type="com.x1.groo.forest.emotion.query.dto.QueryForestEmotionForestItemDTO">
         <result property="id" column="id"/>
         <result property="totalCount" column="total_count"/>
         <result property="placedCount" column="placed_count"/>
@@ -48,8 +48,8 @@
         <result property="placementWidth" column="placement_width" />
         <result property="placementHeight" column="placement_height" />
         <result property="placementZIndex" column="placement_z_index" />
-        <result property="userItemId" column="user_item_id"/>
-        <result property="userItemPlacedCount" column="placed_count"/>
+        <result property="forestItemId" column="forest_item_id"/>
+        <result property="forestItemPlacedCount" column="placed_count"/>
         <result property="itemId" column="item_id"/>
         <result property="itemName" column="item_name"/>
         <result property="itemImageUrl" column="item_image_url"/>
@@ -66,19 +66,18 @@
         WHERE id = #{forestId}
     </select>
 
-    <select id="findPieceOfMemory" resultMap="QueryForestUserItemResultMap">
-        SELECT ui.id
-             , ui.item_id
-             , ui.total_count
-             , ui.placed_count
+    <select id="findPieceOfMemory" resultMap="QueryForestItemResultMap">
+        SELECT fi.id
+             , fi.item_id
+             , fi.total_count
+             , fi.placed_count
              , i.name
              , i.category_id
              , i.image_url
-        FROM user_item ui
-                 JOIN item i ON ui.item_id = i.id
-        WHERE ui.user_id = #{userId}
-          AND i.category_id = #{categoryId}
-          AND ui.forest_id = #{forestId}
+          FROM forest_item fi
+                 JOIN item i ON fi.item_id = i.id
+         WHERE i.category_id = #{categoryId}
+           AND fi.forest_id = #{forestId}
     </select>
 
     <select id="findMailboxList" resultMap="QueryForestMailboxListResultMap">
@@ -123,16 +122,16 @@
              , p.width         AS placement_width
              , p.height        AS placement_height
              , p.z_index       AS placement_z_index
-             , ui.id           AS user_item_id
-             , ui.placed_count
+             , fi.id           AS forest_item_id
+             , fi.placed_count
              , i.id            AS item_id
              , i.name          AS item_name
              , i.image_url     AS item_image_url
           FROM forest f
           LEFT JOIN background b ON f.background_id = b.id
-          LEFT JOIN user_item ui ON ui.forest_id = f.id AND ui.placed_count > 0
-          LEFT JOIN placement p ON p.user_item_id = ui.id
-          LEFT JOIN item i ON ui.item_id = i.id
+          LEFT JOIN forest_item fi ON fi.forest_id = f.id AND fi.placed_count > 0
+          LEFT JOIN placement p ON p.forest_item_id = fi.id
+          LEFT JOIN item i ON fi.item_id = i.id
          WHERE f.id = #{forestId}
            AND (f.is_public = true
             OR (f.is_public = false AND f.user_id = #{userId}));

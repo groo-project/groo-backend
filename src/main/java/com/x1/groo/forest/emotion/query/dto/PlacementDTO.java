@@ -14,8 +14,8 @@ public class PlacementDTO {
     private String itemName;
     private String itemImageUrl;
 
-    private int userItemId;
-    private int userItemPlacedCount;
+    private int forestItemId;
+    private int forestItemPlacedCount;
 
     private int placementId;
     private BigDecimal placementPositionX;

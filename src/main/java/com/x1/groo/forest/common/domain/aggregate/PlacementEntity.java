@@ -1,6 +1,5 @@
-package com.x1.groo.forest.emotion.command.domain.aggregate;
+package com.x1.groo.forest.common.domain.aggregate;
 
-import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -36,18 +35,6 @@ public class PlacementEntity {
     private Integer zIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id")
-    private UserEntity user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_item_id")
-    private UserItemEntity userItem;
-
-    public PlacementEntity(BigDecimal positionX, BigDecimal positionY,
-                           UserEntity user, UserItemEntity userItem) {
-        this.positionX = positionX;
-        this.positionY = positionY;
-        this.user = user;
-        this.userItem = userItem;
-    }
+    @JoinColumn(name="forest_item_id")
+    private ForestItemEntity forestItem;
 }

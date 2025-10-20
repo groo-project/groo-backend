@@ -23,9 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import static com.x1.groo.common.sse.SseEventType.USER_JOINED;
@@ -178,7 +176,7 @@ public class CommandMateServiceImpl implements CommandMateService {
 
         ForestEntity forest = new ForestEntity();
         forest.setName(request.getForestName());
-        forest.setMonth(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM")));
+        forest.setCreatedAt(LocalDateTime.now());
         forest.setIsPublic(false);
         forest.setBackground(background);
         forest.setUser(user);

@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class QueryForestEmotionUserItemDTO {
+public class QueryForestEmotionForestItemDTO {
 
     private int id;
     private int totalCount;
