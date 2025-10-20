@@ -5,5 +5,7 @@ import lombok.Getter;
 @Getter
 public class ResetPasswordRequestVO {
 
-    private String password;
+    private String currentPassword;
+
+    private String newPassword;
 }

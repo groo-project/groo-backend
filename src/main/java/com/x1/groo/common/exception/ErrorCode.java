@@ -67,6 +67,9 @@ public enum ErrorCode {
     IDTOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "G001", "idToken이 누락되었습니다."),
     INVALID_IDTOKEN(HttpStatus.UNAUTHORIZED, "G002", "검증에 실패한 Google ID 토큰입니다."),
 
+    // password
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST,"P001" ,"비밀번호가 일치하지 않습니다." ),
+
     // 로그
     LOG_FILE_READ_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L001", "로그 파일 읽기 실패"),
     LOG_FILE_DOWNLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "L002", "로그 파일 다운로드 실패"),
@@ -74,6 +77,8 @@ public enum ErrorCode {
 
     // 공통
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C001", "서버 오류가 발생했습니다.");
+
+
 
     private final HttpStatus status;
     private final String code;
