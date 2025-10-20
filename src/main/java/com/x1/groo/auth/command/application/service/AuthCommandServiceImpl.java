@@ -30,7 +30,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -194,7 +196,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                     f.setUser(user);
                     f.setBackground(background);
                     f.setIsPublic(false);
-                    f.setCreatedAt(LocalDateTime.now());
                     f.setName(user.getNickname());
                     return forestRepository.save(f);
                 });
@@ -259,10 +260,11 @@ public class AuthCommandServiceImpl implements AuthCommandService{
             throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
 
-        diaryRepository.deleteAllByUserId(userId);
-        mailboxRepository.deleteAllByUserId(userId);
+//        diaryRepository.deleteAllByUserId(userId);
+//        mailboxRepository.deleteAllByUserId(userId);
+
         forestRepository.deleteAllByUser(entity);
-        refreshTokenRepository.deleteAllByUserId(userId);
+//        refreshTokenRepository.deleteAllByUserId(userId);
 
         userRepository.delete(entity);
 
