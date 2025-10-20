@@ -1,16 +1,13 @@
 package com.x1.groo.forest.emotion.query.service;
 
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxListDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO;
+import com.x1.groo.forest.emotion.query.dto.*;
+import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionForestItemDTO;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 
 public interface QueryForestEmotionService {
-    List<QueryForestEmotionUserItemDTO> getPieceOfMemory(int userId, int categoryId, int forestId) throws AccessDeniedException;
+    List<QueryForestEmotionForestItemDTO> getPieceOfMemory(int userId, int categoryId, int forestId) throws AccessDeniedException;
 
     List<QueryForestEmotionMailboxListDTO> getMailboxList(int userId, int forestId);
 

@@ -2,11 +2,8 @@ package com.x1.groo.forest.emotion.query.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxListDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO;
+import com.x1.groo.forest.emotion.query.dto.*;
+import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionForestItemDTO;
 import com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +17,7 @@ public class QueryForestEmotionServiceImpl implements QueryForestEmotionService 
     private QueryForestEmotionMapper queryForestEmotionMapper;
 
     // 사용자가 보유한 기억의 조각 카테고리별 조회
-    public List<QueryForestEmotionUserItemDTO> getPieceOfMemory(int userId, int categoryId, int forestId) {
+    public List<QueryForestEmotionForestItemDTO> getPieceOfMemory(int userId, int categoryId, int forestId) {
         int forestOwnerId = queryForestEmotionMapper.findUserIdByForestId(forestId);
 
         if (forestOwnerId != userId) {

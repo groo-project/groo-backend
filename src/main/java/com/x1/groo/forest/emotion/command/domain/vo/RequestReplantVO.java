@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Getter
 public class RequestReplantVO {
 
-    private Integer userItemId; // user_item id값
+    private Integer forestItemId; // forest_item id값
 
     private BigDecimal itemPositionX;
     private BigDecimal itemPositionY;

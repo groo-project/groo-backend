@@ -5,7 +5,7 @@ import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionDetailDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionListDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxDTO;
 import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionMailboxListDTO;
-import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionUserItemDTO;
+import com.x1.groo.forest.emotion.query.dto.QueryForestEmotionForestItemDTO;
 import com.x1.groo.forest.emotion.query.service.QueryForestEmotionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +39,7 @@ public class QueryForestEmotionController {
 
         int userId = user.getUserId();
 
-        List<QueryForestEmotionUserItemDTO> items = queryForestEmotionService.getPieceOfMemory(userId, categoryId, forestId);
+        List<QueryForestEmotionForestItemDTO> items = queryForestEmotionService.getPieceOfMemory(userId, categoryId, forestId);
 
         return ResponseEntity.ok(items);
     }

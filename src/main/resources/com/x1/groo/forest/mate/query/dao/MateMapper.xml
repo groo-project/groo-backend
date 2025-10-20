@@ -35,17 +35,17 @@
              , p.id AS placement_id
              , p.position_x AS placement_position_x
              , p.position_y AS placement_position_y
-             , ui.id AS user_item_id
-             , ui.placed_count
+             , fi.id AS forest_item_id
+             , fi.placed_count
 
              , i.id AS item_id
              , i.name AS item_name
              , i.image_url AS item_image_url
           FROM forest f
           LEFT JOIN background b ON f.background_id = b.id
-          LEFT JOIN user_item ui ON ui.forest_id = f.id
-          LEFT JOIN placement p ON p.user_item_id = ui.id
-          LEFT JOIN item i ON ui.item_id = i.id
+          LEFT JOIN forest_item fi ON fi.forest_id = f.id
+          LEFT JOIN placement p ON p.forest_item_id = fi.id
+          LEFT JOIN item i ON fi.item_id = i.id
          WHERE f.id = #{forestId}
 <!--           AND f.is_public = false-->
 <!--           AND p.id IS NOT NULL;-->
@@ -79,17 +79,17 @@
     <!-- 우정의 숲 보유 아이템 조회 -->
     <select id="getPieceOfMemory" resultType="com.x1.groo.forest.mate.query.dto.MateItemDTO">
         SELECT
-               ui.id AS id
-             , ui.item_id AS itemId
-             , ui.total_count AS totalCount
-             , ui.placed_count AS placedCount
+               fi.id AS id
+             , fi.item_id AS itemId
+             , fi.total_count AS totalCount
+             , fi.placed_count AS placedCount
              , i.`name` AS itemName
              , i.category_id AS categoryId
              , i.image_url AS imageUrl
-          FROM user_item ui
-          JOIN item i ON ui.item_id = i.id
-          JOIN forest f ON ui.forest_id = f.id
-         WHERE ui.forest_id = #{forestId}
+          FROM forest_item fi
+          JOIN item i ON fi.item_id = i.id
+          JOIN forest f ON fi.forest_id = f.id
+         WHERE fi.forest_id = #{forestId}
            AND i.category_id = #{categoryId}
            AND EXISTS (
                SELECT 1

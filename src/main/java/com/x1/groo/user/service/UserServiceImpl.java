@@ -193,9 +193,8 @@ public class UserServiceImpl implements UserService {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
 
-
         //  AT 발급
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getNickname(), user.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername(), user.getNickname(), roles);
 
         //  RT 발급 & 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());
