@@ -2,6 +2,8 @@ package com.x1.groo.user.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.user.dto.KakaoUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +58,13 @@ public class KakaoOAuthService {
         Long kakaoId = userJson.get("id").asLong();
         String nickname = userJson.get("properties").get("nickname").asText();
 
-        return new KakaoUserInfoDTO(kakaoId, nickname);
+        JsonNode emailNode = userJson.path("kakao_account").path("email");
+        if (emailNode.isMissingNode() || emailNode.isNull()) {
+            throw new CustomException(ErrorCode.USER_EMAIL_INVALID);
+        }
+
+        String email = userJson.get("kakao_account").get("email").asText();
+
+        return new KakaoUserInfoDTO(kakaoId, nickname, email);
     }
 }

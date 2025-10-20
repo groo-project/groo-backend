@@ -25,6 +25,7 @@ public enum ErrorCode {
     USER_NICKNAME_DUPLICATE(HttpStatus.BAD_REQUEST, "U004", "이미 존재하는 닉네임입니다."),
     USER_EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "U005", "이메일 인증을 먼저 진행해 주세요."),
     USER_EMAIL_AUTH_FAILED(HttpStatus.BAD_REQUEST, "U006", "인증 번호가 일치하지 않습니다."),
+    USER_EMAIL_INVALID(HttpStatus.BAD_REQUEST, "U007", "유효한 이메일이 아닙니다."),
 
     // diary
     DIARY_NOT_FOUND(HttpStatus.NOT_FOUND, "D001", "존재하지 않는 일기입니다."),

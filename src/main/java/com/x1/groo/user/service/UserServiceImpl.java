@@ -291,10 +291,16 @@ public class UserServiceImpl implements UserService {
                 .orElseGet(() -> {
                     String nickname = generateUniqueNickname(userInfo.getNickname());
 
+                    boolean isEmailExists = userRepository.existsByEmail(userInfo.getEmail());
+                    if (isEmailExists) {
+                        throw new CustomException(ErrorCode.USER_EMAIL_DUPLICATE);
+                    }
+
                     UserEntity newUser = new UserEntity();
                     newUser.setNickname(nickname);
                     newUser.setOauthProvider(OAUTH_PROVIDER_KAKAO);
                     newUser.setOauthId(userInfo.getKakaoId().toString());
+                    newUser.setEmail(userInfo.getEmail());
 
                     UserEntity savedUser = userRepository.save(newUser);
 
