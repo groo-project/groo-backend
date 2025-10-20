@@ -250,7 +250,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 이메일 인증
-        log.info("getName: {}, getUsername: {}", user.getName(), user.getUsername());
         if (!redisUtil.exists(user.getUsername())) {
             throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
