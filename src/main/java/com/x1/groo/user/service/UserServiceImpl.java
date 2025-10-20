@@ -89,6 +89,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.existsByEmail(email);
     }
 
+    @Override
+    public boolean findById(int userId) {
+        return userRepository.existsById(userId);
+    }
+
     // 기능 : 회원가입
     @Transactional
     @Override

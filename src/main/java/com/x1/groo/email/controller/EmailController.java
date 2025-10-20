@@ -49,7 +49,7 @@ public class EmailController {
     @Operation(summary = "회원 탈퇴 인증 코드 전송")
     @PostMapping("/withdrawal")
     public String withdrawMailSend(@AuthenticationPrincipal CustomUserDetails user) {
-        if(!userService.findByEmail(user.getUsername())){
+        if(!userService.findById(user.getUserId())){
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
         }
         return mailService.withdraw(user.getUsername());

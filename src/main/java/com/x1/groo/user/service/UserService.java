@@ -44,4 +44,6 @@ public interface UserService extends UserDetailsService {
 
     void resetPassword(int userId, ResetPasswordRequestVO vo);
 
+    boolean findById(int userId);
+
 }
