@@ -267,7 +267,12 @@ public class UserServiceImpl implements UserService {
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        user.setPassword(bCryptPasswordEncoder.encode(vo.getPassword()));
+
+        if (!bCryptPasswordEncoder.matches(vo.getCurrentPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        user.setPassword(bCryptPasswordEncoder.encode(vo.getNewPassword()));
 
 
     }

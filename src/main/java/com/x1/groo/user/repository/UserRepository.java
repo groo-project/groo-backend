@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     @Query("SELECT u.nickname FROM UserEntity u WHERE u.nickname LIKE CONCAT(:baseNickname, '%')")
     List<String> findNicknamesByBase(@Param("baseNickname") String baseNickname);
+
+    String findPasswordById(int id);
 }
