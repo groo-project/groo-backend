@@ -42,9 +42,15 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     @Override
     public void retrieveItemsByIds(int userId, List<Integer> placementIds) {
 
+        Integer forestId = null;
+
         for (Integer placementId : placementIds) {
             PlacementEntity placement = placementRepository.findById(placementId)
                     .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
+
+            if (forestId == null) {
+                forestId = placement.getForestItem().getForest().getId();
+            }
 
             ForestItemEntity forestItem = forestItemRepository.findById(placement.getForestItem().getId())
                     .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
@@ -55,6 +61,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
 
             // 배치 삭제
             placementRepository.deleteById(placementId);
+        }
+
+        if (forestId != null) {
+            // 브로드캐스트
+            sseEventPublisher.publish(forestId, SseEventType.ITEM_PLACED,new ItemPlacedPayload(userId, forestId));
         }
     }
 
@@ -139,6 +150,8 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
             throw new CustomException(ErrorCode.PLACEMENT_NOT_FOUND);
         }
 
+        Integer forestId = null;
+
         for (RequestReplacementVO vo : replacementVOList) {
             if (!vo.isValid()) {
                 throw new CustomException(ErrorCode.PLACEMENT_NOT_FOUND);
@@ -148,6 +161,10 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
             PlacementEntity placement = placementRepository.findById(vo.getPlacementId())
                     .orElseThrow(() -> new CustomException(ErrorCode.PLACEMENT_NOT_FOUND));
 
+            if (forestId == null) {
+                forestId = placement.getForestItem().getForest().getId();
+            }
+
             // 3. 위치/크기/Z-Index 변경
             placement.setPositionX(vo.getItemPositionX());
             placement.setPositionY(vo.getItemPositionY());
@@ -156,6 +173,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
             placement.setZIndex(vo.getItemZIndex());
         }
         // JPA의 dirty checking으로 트랜잭션 종료 시 자동 업데이트
+
+        if (forestId != null) {
+            // 브로드캐스트
+            sseEventPublisher.publish(forestId, SseEventType.ITEM_PLACED,new ItemPlacedPayload(userId, forestId));
+        }
     }
     
     /* 보관된 아이템 배치 */
@@ -179,6 +201,11 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
 
         // 4. userItem의 placed_count 증가
         forestItem.incrementPlacedCount();
+
+        int forestId = requestReplantVO.getForestId();
+
+        // 브로드캐스트
+        sseEventPublisher.publish(forestId, SseEventType.ITEM_PLACED,new ItemPlacedPayload(userId, forestId));
     }
 
     /* 방명록 작성 */

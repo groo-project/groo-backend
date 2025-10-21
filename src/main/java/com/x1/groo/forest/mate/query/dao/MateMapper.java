@@ -1,5 +1,6 @@
 package com.x1.groo.forest.mate.query.dao;
 
+import com.x1.groo.forest.emotion.query.dto.PlacementDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
 import com.x1.groo.forest.mate.query.dto.MateItemDTO;
@@ -15,9 +16,12 @@ public interface MateMapper {
             @Param("userId") int userId
     );
 
-    MateForestDetailDTO findForestDetail(
-            @Param("forestId") int forestId
-    );
+    MateForestDetailDTO findForestBaseDetail(
+            @Param("forestId") int forestId);
+
+    // 배치 목록 조회
+    List<PlacementDTO> findPlacementListByForestId(
+            @Param("forestId") int forestId);
 
     List<String> findNicknamesByForestId(
             @Param("forestId") int forestId

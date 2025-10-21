@@ -2,6 +2,7 @@ package com.x1.groo.forest.mate.query.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.forest.emotion.query.dto.PlacementDTO;
 import com.x1.groo.forest.mate.query.dao.MateMapper;
 import com.x1.groo.forest.mate.query.dto.MateForestDetailDTO;
 import com.x1.groo.forest.mate.query.dto.MateForestResponseDTO;
@@ -26,18 +27,18 @@ public class MateServiceImpl implements MateService {
 
     @Override
     public MateForestDetailDTO getForestDetail(int forestId) {
-        MateForestDetailDTO forestDetails = mateMapper.findForestDetail(forestId);
+        MateForestDetailDTO forestDetails = mateMapper.findForestBaseDetail(forestId);
 
         if (forestDetails == null) {
             throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
         }
 
-
         List<String> nicknames = mateMapper.findNicknamesByForestId(forestId);
-
         forestDetails.setNicknames(nicknames);
 
-        log.info(forestDetails.toString());
+        List<PlacementDTO> placementList = mateMapper.findPlacementListByForestId(forestId);
+        forestDetails.setPlacementList(placementList);
+
         return forestDetails;
     }
 

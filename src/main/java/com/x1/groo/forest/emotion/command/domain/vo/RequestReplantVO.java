@@ -18,4 +18,5 @@ public class RequestReplantVO {
     private BigDecimal itemWidth;
     private BigDecimal itemHeight;
     private Integer itemZIndex;
+    private Integer forestId;
 }

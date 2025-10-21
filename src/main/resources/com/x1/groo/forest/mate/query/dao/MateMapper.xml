@@ -12,43 +12,36 @@
     </select>
     
     <!--    우정의 숲 상세 조회 -->
-    <resultMap id="MateForestDetailResultMap" type="com.x1.groo.forest.mate.query.dto.MateForestDetailDTO">
-        <result property="forestId" column="forest_id"/>
-        <result property="name" column="forest_name"/>
-        <result property="isPublic" column="is_public"/>
-        <result property="backgroundId" column="background_id"/>
-        <result property="userId" column="user_id"/>
-        <result property="backgroundImageUrl" column="background_image_url"/>
-        <collection property="placementList"
-                    resultMap="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper.PlacementDTOMap"/>
-    </resultMap>
-
-    <select id="findForestDetail" resultMap="MateForestDetailResultMap">
+    <select id="findForestBaseDetail" resultType="com.x1.groo.forest.mate.query.dto.MateForestDetailDTO">
         SELECT
-               f.id AS forest_id
-             , f.name AS forest_name
-             , f.is_public
-             , f.background_id AS background_id
-             , f.user_id
-             , b.image_url AS background_image_url
-
-             , p.id AS placement_id
+               f.id AS forestId
+             , f.name AS forestName
+             , f.is_public AS isPublic
+             , f.background_id AS backgroundId
+             , f.user_id AS userId
+             , b.image_url AS backgroundImageUrl
+          FROM forest f
+          LEFT JOIN background b ON f.background_id = b.id
+         WHERE f.id = #{forestId}
+    </select>
+    <select id="findPlacementListByForestId"
+            resultMap="com.x1.groo.forest.emotion.query.repository.QueryForestEmotionMapper.PlacementDTOMap">
+        SELECT
+               p.id AS placement_id
              , p.position_x AS placement_position_x
              , p.position_y AS placement_position_y
+             , p.width AS placement_width
+             , p.height AS placement_height
              , fi.id AS forest_item_id
              , fi.placed_count
-
              , i.id AS item_id
              , i.name AS item_name
              , i.image_url AS item_image_url
           FROM forest f
-          LEFT JOIN background b ON f.background_id = b.id
-          LEFT JOIN forest_item fi ON fi.forest_id = f.id
-          LEFT JOIN placement p ON p.forest_item_id = fi.id
+          JOIN forest_item fi ON fi.forest_id = f.id
+          JOIN placement p ON p.forest_item_id = fi.id
           LEFT JOIN item i ON fi.item_id = i.id
          WHERE f.id = #{forestId}
-<!--           AND f.is_public = false-->
-<!--           AND p.id IS NOT NULL;-->
     </select>
     
     <!-- 숲에 참여한 모든 유저 닉네임 조회 -->
