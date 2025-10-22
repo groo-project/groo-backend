@@ -18,6 +18,7 @@ import com.x1.groo.forest.mate.command.domain.repository.ForestInviteRepository;
 import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -54,10 +55,40 @@ public class CommandMateServiceImpl implements CommandMateService {
 
         sharedForestRepository.deleteByUserIdAndForestId(userId, forestId);
 
+        ForestEntity forest = forestRepository.findById(forestId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_NOT_FOUND));
+
+        // 숲 회원 조회
+        List<SharedForestEntity> member = sharedForestRepository.findAllByForestIdOrderByIdAsc(forestId);
+
+
+        boolean deleted = false;
+
+        // 우정의 숲 주인일 경우
+        if( userId == forest.getUser().getId()) {
+            // 숲 주인 제외 필터링
+            List<SharedForestEntity> remaining = member.stream()
+                    .filter(u -> u.getUserId() != userId)
+                    .toList();
+
+            if(!remaining.isEmpty()) {
+                SharedForestEntity newOwnerMember = remaining.get(0);
+                UserEntity user = userRepository.findById(newOwnerMember.getUserId())
+                                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                forest.setUser(user);
+                forestRepository.save(forest);
+            } else {
+                forestRepository.deleteById(forestId);
+                deleted = true;
+            }
+        }
+
         // 0명이 될 때 숲 삭제
-        int memberCount = sharedForestRepository.countByForestId(forestId);
-        if (memberCount == 0) {
-            forestRepository.deleteById(forestId);
+        if(!deleted) {
+            int memberCount = sharedForestRepository.countByForestId(forestId);
+            if (memberCount == 0) {
+                forestRepository.deleteById(forestId);
+            }
         }
 
         // 브로드캐스트

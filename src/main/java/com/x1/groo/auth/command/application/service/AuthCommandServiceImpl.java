@@ -20,6 +20,8 @@ import com.x1.groo.forest.common.domain.repository.ForestItemRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.common.domain.repository.UserRepository;
 import com.x1.groo.forest.emotion.command.domain.repository.MailboxRepository;
+import com.x1.groo.forest.mate.command.domain.aggregate.SharedForestEntity;
+import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.user.dto.LoginDTO;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -56,6 +59,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     private final MailboxRepository mailboxRepository;
     private final ForestItemRepository forestItemRepository;
     private final RedisUtil redisUtil;
+    private final SharedForestRepository sharedForestRepository;
 
     @Value("${google.client-id}")
     private String googleClientId;
@@ -65,7 +69,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                                   UserRepository userRepository, ForestRepository forestRepository,
                                   BackgroundRepository backgroundRepository, DiaryRepository diaryRepository,
                                   MailboxRepository mailboxRepository, ForestItemRepository forestItemRepository,
-                                  RedisUtil redisUtil){
+                                  RedisUtil redisUtil, SharedForestRepository sharedForestRepository){
         this.refreshTokenRepository = refreshTokenRepository;
         this.jwtUtil = jwtUtil;
         this.userService = userService;
@@ -76,6 +80,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         this.mailboxRepository = mailboxRepository;
         this.forestItemRepository = forestItemRepository;
         this.redisUtil = redisUtil;
+        this.sharedForestRepository = sharedForestRepository;
     }
 
     @Override
@@ -243,12 +248,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     @Transactional
     @Override
     public void withdraw(CustomUserDetails user) {
-        /*
-            공유 숲을 소유한 user가 탈퇴 시 shared_forest에 해당 forest_id가 동일한 user가 남아있으면
-            (공유 숲에 남은 인원이 있으면) forest 테이블의 user_id를 남은 user의 id로 바꾸는 로직 필요
-
-            만약 남은 인원이 없다면 모두 삭제하는 로직 필요(개인 숲은 그냥 다 삭제)
-        */
 
         int userId = user.getUserId();
 
@@ -256,17 +255,52 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                         .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 이메일 인증
-        log.info("getName: {}, getUsername: {}", user.getName(), user.getUsername());
         if (!redisUtil.exists(user.getUsername())) {
             throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
 
-        diaryRepository.deleteAllByUserId(userId);
-        mailboxRepository.deleteAllByUserId(userId);
-        forestRepository.deleteAllByUser(entity);
-        refreshTokenRepository.deleteAllByUserId(userId);
+
+//        int forestId = user.getForestId();
+//        log.info("forest : {}", forestId);
+
+        // 숲 조회
+        List<ForestEntity> ownedForests = forestRepository.findAllByUserId(userId);
+
+        for (ForestEntity forest : ownedForests) {
+
+            int forestId = forest.getId();
+
+            // 숲 회원 조회
+            List<SharedForestEntity> member = sharedForestRepository.findAllByForestIdOrderByIdAsc(forestId);
+
+            // 숲의 주인인 경우
+            if (forest.getUser().getId() == userId) {
+
+                // 숲 주인을 제외한 멤버 필터링
+                List<SharedForestEntity> remaining = member.stream()
+                        .filter(m -> m.getUserId() != userId)
+                        .toList();
+
+                if (!remaining.isEmpty()) {
+                    SharedForestEntity newOwnerMember = remaining.get(0);
+                    UserEntity newOwner = userRepository.findById(newOwnerMember.getUserId())
+                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+                    forest.setUser(newOwner);
+                    forestRepository.save(forest);
+
+                } else { // 멤버가 없다면
+                    forestRepository.deleteById(forestId);
+                }
+
+            } else { // 개인 숲인 경우
+                forestRepository.deleteById(forestId);
+            }
+        }
+
+        // 참여한 우정의 숲 삭제
+        sharedForestRepository.deleteByUserId(userId);
 
         userRepository.delete(entity);
-
     }
 }

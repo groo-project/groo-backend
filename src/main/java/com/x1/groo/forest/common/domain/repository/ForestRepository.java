@@ -3,6 +3,7 @@ package com.x1.groo.forest.common.domain.repository;
 import com.x1.groo.forest.common.domain.aggregate.ForestEntity;
 import com.x1.groo.forest.common.domain.aggregate.UserEntity;
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -35,5 +36,8 @@ public interface ForestRepository extends JpaRepository<ForestEntity, Integer> {
 
     Optional<ForestEntity> findFirstByUser_IdOrderByIdAsc(Integer id);
 
-    void deleteAllByUser(UserEntity user);
+
+    void deleteByUserId(int userId);
+
+    List<ForestEntity> findAllByUserId(int userId);
 }
