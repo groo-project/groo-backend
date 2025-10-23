@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MateForestDetailDTO {
     private int forestId;
-    private String name;
+    private String forestName;
     private Boolean isPublic;
     private int backgroundId;
     private int userId;
