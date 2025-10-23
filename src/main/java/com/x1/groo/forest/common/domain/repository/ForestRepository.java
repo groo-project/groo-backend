@@ -36,8 +36,5 @@ public interface ForestRepository extends JpaRepository<ForestEntity, Integer> {
 
     Optional<ForestEntity> findFirstByUser_IdOrderByIdAsc(Integer id);
 
-
-    void deleteByUserId(int userId);
-
     List<ForestEntity> findAllByUserId(int userId);
 }

@@ -259,10 +259,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
             throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
 
-
-//        int forestId = user.getForestId();
-//        log.info("forest : {}", forestId);
-
         // 숲 조회
         List<ForestEntity> ownedForests = forestRepository.findAllByUserId(userId);
 
