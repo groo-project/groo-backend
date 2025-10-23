@@ -23,4 +23,6 @@ public class MateForestDetailDTO {
     private List<PlacementDTO> placementList = new ArrayList<>();
 
     private List<String> nicknames = new ArrayList<>();
+
+    private int writtenDiaryCount;
 }

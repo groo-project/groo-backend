@@ -39,6 +39,9 @@ public class MateServiceImpl implements MateService {
         List<PlacementDTO> placementList = mateMapper.findPlacementListByForestId(forestId);
         forestDetails.setPlacementList(placementList);
 
+        int writtenDiaryCount = mateMapper.getWrittenDiaryCountByForestId(forestId);
+        forestDetails.setWrittenDiaryCount(writtenDiaryCount);
+
         return forestDetails;
     }
 

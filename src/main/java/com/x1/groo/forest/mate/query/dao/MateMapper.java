@@ -32,6 +32,8 @@ public interface MateMapper {
             @Param("categoryId") int categoryId,
             @Param("forestId") int forestId
     );
+
+    int getWrittenDiaryCountByForestId(@Param("forestId") int forestId);
 }
 
 

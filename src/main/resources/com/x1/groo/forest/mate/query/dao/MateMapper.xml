@@ -90,4 +90,13 @@
                 WHERE sf.forest_id = f.id
                )
     </select>
+
+
+    <!-- 우정의 숲 일기 갯수 조회 -->
+    <select id="getWrittenDiaryCountByForestId" resultType="int">
+        select count(*)  AS writtenDiaryCount
+          FROM diary d
+          JOIN forest f ON d.forest_id = f.id
+         WHERE f.id = #{forestId}
+    </select>
 </mapper>
