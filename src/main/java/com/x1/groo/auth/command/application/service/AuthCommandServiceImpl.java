@@ -259,11 +259,13 @@ public class AuthCommandServiceImpl implements AuthCommandService{
             throw new CustomException(ErrorCode.USER_EMAIL_NOT_VERIFIED);
         }
 
+        // 참여한 우정의 숲 삭제
+        sharedForestRepository.deleteByUserId(userId);
+
         // 숲 조회
         List<ForestEntity> ownedForests = forestRepository.findAllByUserId(userId);
 
         for (ForestEntity forest : ownedForests) {
-
             int forestId = forest.getId();
 
             // 숲 회원 조회
@@ -293,9 +295,6 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 forestRepository.deleteById(forestId);
             }
         }
-
-        // 참여한 우정의 숲 삭제
-        sharedForestRepository.deleteByUserId(userId);
 
         userRepository.delete(entity);
     }
