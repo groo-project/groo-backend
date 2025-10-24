@@ -26,10 +26,10 @@ public class MateActionController {
     public ResponseEntity<Void> join(@PathVariable int forestId,
                                      @AuthenticationPrincipal CustomUserDetails user) {
 
-        System.out.println("=== 초대 수락 시작 ===");
-        System.out.println("Forest ID: " + forestId);
-        System.out.println("User ID: " + user.getUserId());
-        System.out.println("User Name: " + user.getName());
+//        System.out.println("=== 초대 수락 시작 ===");
+//        System.out.println("Forest ID: " + forestId);
+//        System.out.println("User ID: " + user.getUserId());
+//        System.out.println("User Name: " + user.getName());
 
         // 1) DB 갱신 (짧은 트랜잭션으로)
         mateCommandService.joinForest(user.getUserId(), forestId, user.getName());

@@ -2,7 +2,6 @@ package com.x1.groo.forest.mate.command.domain.aggregate;
 
 public enum InviteCodeStatus {
     ACTIVE("ACTIVE"),
-    USED("USED"),
     REVOKED("REVOKED");
     private final String inviteCodeStatus;
 

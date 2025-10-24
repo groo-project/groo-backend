@@ -31,7 +31,6 @@ import java.util.UUID;
 
 import static com.x1.groo.common.sse.SseEventType.USER_JOINED;
 import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.REVOKED;
-import static com.x1.groo.forest.mate.command.domain.aggregate.InviteCodeStatus.USED;
 
 @Service
 @RequiredArgsConstructor
@@ -147,24 +146,23 @@ public class CommandMateServiceImpl implements CommandMateService {
     @Override
     public int acceptInvite(int userId, String inviteCode) {
 
+        UserEntity  user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String nickname = user.getNickname();
 
         ForestInviteEntity invite = forestInviteRepository.findByCode(inviteCode);
+
         if(invite == null) throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
 
         int forestId = invite.getForestId();
 
         if (invite.getStatus() == REVOKED)
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_REVOKED);
-        if (invite.getStatus() == USED)
-            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_USED);
+
         if (LocalDateTime.now().isAfter(invite.getExpiresAt()))
             throw new CustomException(ErrorCode.FOREST_INVITE_CODE_EXPIRED);
 
-        // 초대코드 동시 수락 방지
-        int updated = forestInviteRepository.consume(inviteCode);
-        if (updated != 1) {
-            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_INVALID);
-        }
 
         if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {
             throw new CustomException(ErrorCode.FOREST_ALREADY_ACCEPTED_INVITE);
@@ -180,12 +178,6 @@ public class CommandMateServiceImpl implements CommandMateService {
         SharedForestEntity sharedForest = new SharedForestEntity(userId, forestId);
         sharedForestRepository.save(sharedForest);
 
-//        Optional<UserEntity> user = userRepository.findById(userId);
-
-        UserEntity  user = userRepository.findById(userId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        String nickname = user.getNickname();
 
         // 브로드캐스트
         sseEventPublisher.publish(forestId, USER_JOINED,new UserJoinedPayload(userId, nickname));
@@ -200,16 +192,14 @@ public class CommandMateServiceImpl implements CommandMateService {
         if (sharedForestRepository.existsByUserIdAndForestId(userId, forestId)) {
             return; // 이미 참가
         }
-        log.info("이미 참여한 사용자가 아닙니다." );
 
-        // DB 갱신 (예: 매핑 추가)
         sharedForestRepository.save(new SharedForestEntity(userId, forestId));
 
         // 커밋 "후"에만 전송되도록 예약 (롤백되면 전송 안 함)
         sseEventPublisher.publishAfterCommit(
                 forestId,
                 USER_JOINED,
-                new UserJoinedPayload(userId, nickname) // payload는 작고 명확하게
+                new UserJoinedPayload(userId, nickname)
         );
     }
 
