@@ -47,11 +47,12 @@ public enum ErrorCode {
     FOREST_INVITE_CODE_INVALID(HttpStatus.BAD_REQUEST, "F003", "초대코드가 유효하지 않습니다."),
     FOREST_ALREADY_ACCEPTED_INVITE(HttpStatus.BAD_REQUEST, "F004", "이미 숲에 참여한 사용자입니다."),
     FOREST_FULL(HttpStatus.BAD_REQUEST, "F005", "이 숲은 이미 정원이 가득 찼습니다."),
-    FOREST_INVITE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F006", "초대 코드를 생성하지 못했습니다."),
-    FOREST_INVITE_CODE_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F007", "초대 코드 저장 중 오류가 발생했습니다."),
+    FOREST_INVITE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F006", "초대 코드 생성 중 오류가 발생했습니다."),
+    FOREST_INVITE_UNIQUE_VIOLATION(HttpStatus.CONFLICT, "F007", "중복된 초대 코드로 인해 저장에 실패했습니다."),
     FOREST_INVITE_CODE_REVOKED(HttpStatus.FORBIDDEN, "F008", "회수된 초대 코드입니다."),
     FOREST_INVITE_CODE_USED(HttpStatus.CONFLICT, "F009", "이미 사용된 초대 코드입니다."),
     FOREST_INVITE_CODE_EXPIRED(HttpStatus.GONE, "F010", "만료된 초대 코드입니다."),
+    FOREST_INVITE_COUNT_RESTRICT(HttpStatus.BAD_REQUEST,"F011" ,"숲의 최대 인원 4명을 초과할 수 없습니다."),
 
     // forest 내 placement 관련
     PLACEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "P001", "배치된 아이템을 찾을 수 없습니다."),
@@ -77,6 +78,7 @@ public enum ErrorCode {
 
     // 공통
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C001", "서버 오류가 발생했습니다.");
+
 
 
 

@@ -24,4 +24,6 @@ public interface SharedForestRepository extends JpaRepository<SharedForestEntity
     void deleteByUserId(int userId);
 
     List<SharedForestEntity> findAllByForestIdOrderByIdAsc(int forestId);
+
+    List<SharedForestEntity> findByForestId(int forestId);
 }

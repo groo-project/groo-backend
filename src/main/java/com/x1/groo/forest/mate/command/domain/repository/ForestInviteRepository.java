@@ -1,6 +1,7 @@
 package com.x1.groo.forest.mate.command.domain.repository;
 
 import com.x1.groo.forest.mate.command.domain.aggregate.ForestInviteEntity;
+import java.util.Optional;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -28,4 +29,6 @@ public interface ForestInviteRepository extends JpaRepository<ForestInviteEntity
     int deleteExpired(@Param("cutoff") LocalDateTime cutoff);
 
     ForestInviteEntity findByCode(String inviteCode);
+
+    Optional<ForestInviteEntity> findByForestId(int forestId);
 }

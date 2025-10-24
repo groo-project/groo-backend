@@ -44,7 +44,7 @@ public class ForestInviteEntity {
     void prePersist() {
         if(createdAt == null) createdAt = LocalDateTime.now();
         if(status == null) status = ACTIVE;
-        if(expiresAt == null) expiresAt = createdAt.plusHours(24L);
+        if(expiresAt == null) expiresAt = createdAt.plusHours(24);
     }
 
 }

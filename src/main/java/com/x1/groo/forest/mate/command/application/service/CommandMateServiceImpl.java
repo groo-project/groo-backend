@@ -19,8 +19,10 @@ import com.x1.groo.forest.mate.command.domain.repository.SharedForestRepository;
 import com.x1.groo.forest.mate.command.domain.vo.CreateMateForestRequest;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.Now;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -101,7 +103,20 @@ public class CommandMateServiceImpl implements CommandMateService {
     @Override
     public String createInviteLink(int forestId, int userId) {
 
-        if(!forestRepository.existsById(forestId))throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
+        if(!forestRepository.existsById(forestId)) {
+            throw new CustomException(ErrorCode.FOREST_NOT_FOUND);
+        }
+
+        ForestInviteEntity invite = forestInviteRepository.findByForestId(forestId).orElse(null);
+
+        // 초대 링크 존재
+        if(invite != null) {
+            if(invite.getExpiresAt().isBefore(LocalDateTime.now())) { // 초대 링크 만료 시
+                invite.setExpiresAt(LocalDateTime.now().plusHours(24)); // 24시간 연장
+                forestInviteRepository.save(invite);
+            }
+            return invite.getCode();
+        }
 
         String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
 
@@ -109,12 +124,15 @@ public class CommandMateServiceImpl implements CommandMateService {
         entity.setForestId(forestId);
         entity.setCode(inviteCode);
         entity.setCreatedBy(userId);
+
         try {
             forestInviteRepository.saveAndFlush(entity);
             return inviteCode;
         } catch (DataIntegrityViolationException e) {
-            if(!isUniqueViolation(e)) throw new CustomException(ErrorCode.FOREST_INVITE_GENERATION_FAILED);
-            throw new CustomException(ErrorCode.FOREST_INVITE_CODE_SAVE_FAILED);
+            if(isUniqueViolation(e)) {
+                throw new CustomException(ErrorCode.FOREST_INVITE_UNIQUE_VIOLATION);
+            }
+            throw new CustomException(ErrorCode.FOREST_INVITE_GENERATION_FAILED);
         }
 
     }
