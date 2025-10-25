@@ -17,4 +17,5 @@ public class ResponseSharedDiaryDetailDTO {
     private int userId;                 // 작성자 아이디
     private String nickname;            // 작성자 닉네임
     private List<String> emotions;      // 감정 리스트
+    private boolean isItemSelected;     // 아이템 선택 여부
 }

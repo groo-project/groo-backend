@@ -1,6 +1,7 @@
 package com.x1.groo.diary.query.service;
 
 import com.x1.groo.diary.query.dto.ResponseDiaryDetailDTO;
+import com.x1.groo.diary.query.dto.ResponseDraftedItemsDTO;
 import com.x1.groo.diary.query.dto.ResponsePersonalDiaryListDTO;
 import com.x1.groo.diary.query.dto.ResponseSharedDiaryListDTO;
 import com.x1.groo.diary.query.repository.QueryDiaryMapper;
@@ -49,5 +50,11 @@ public class QueryDiaryServiceImpl implements QueryDiaryService {
     public List<ResponseDiaryDetailDTO> getSharedDiariesDetail(int userId, List<Integer> diaryIds) {
 
         return queryDiaryMapper.getSharedDiariesDetail(userId, diaryIds);
+    }
+
+    @Override
+    public ResponseDraftedItemsDTO getDraftedItems(int userId, int diaryId) {
+
+        return queryDiaryMapper.getDraftedItems(userId, diaryId);
     }
 }

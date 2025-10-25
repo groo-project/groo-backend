@@ -1,6 +1,7 @@
 package com.x1.groo.diary.query.controller;
 
 import com.x1.groo.diary.query.dto.ResponseDiaryDetailDTO;
+import com.x1.groo.diary.query.dto.ResponseDraftedItemsDTO;
 import com.x1.groo.diary.query.dto.ResponsePersonalDiaryListDTO;
 import com.x1.groo.diary.query.dto.ResponseSharedDiaryListDTO;
 import com.x1.groo.diary.query.service.QueryDiaryService;
@@ -74,5 +75,17 @@ public class QueryDiaryController {
         List<ResponseDiaryDetailDTO> diaries = queryDiaryService.getSharedDiariesDetail(user.getUserId(), diaryIds);
 
         return ResponseEntity.ok(diaries);
+    }
+
+    @Operation(summary = "아이템 선택 임시 저장 조회")
+    @GetMapping("/items/storage")
+    public ResponseEntity<ResponseDraftedItemsDTO> getDraftedItems(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam int diaryId
+    ) {
+
+        ResponseDraftedItemsDTO items = queryDiaryService.getDraftedItems(user.getUserId(), diaryId);
+
+        return ResponseEntity.ok(items);
     }
 }
