@@ -33,6 +33,9 @@ public class Diary {
     @Column(name = "forest_id", nullable = false)
     private int forestId;
 
+    @Column(name = "is_item_selected", nullable = false)
+    private boolean isItemSelected;
+
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();

@@ -11,8 +11,10 @@ import com.x1.groo.diary.command.domain.dto.DiaryUpdateRequestDTO;
 import com.x1.groo.diary.command.domain.dto.DiaryUpdateResponseDTO;
 import com.x1.groo.diary.command.domain.entity.Diary;
 import com.x1.groo.diary.command.domain.entity.DiaryEmotion;
+import com.x1.groo.diary.command.domain.entity.ItemSelectionDraft;
 import com.x1.groo.diary.command.domain.repository.DiaryEmotionRepository;
 import com.x1.groo.diary.command.domain.repository.DiaryRepository;
+import com.x1.groo.diary.command.domain.repository.ItemSelectionDraftRepository;
 import com.x1.groo.forest.common.domain.repository.ForestRepository;
 import com.x1.groo.forest.emotion.command.domain.repository.EmotionSharedForestRepository;
 import com.x1.groo.item.dto.CategoryEmotionItemDTO;
@@ -41,6 +43,7 @@ public class DiaryServiceImpl implements DiaryService {
     private final ForestRepository forestRepo;
     private final EmotionSharedForestRepository sharedForestRepo;
     private final ItemService itemService;
+    private final ItemSelectionDraftRepository itemSelectionDraftRepository;
 
     @Override
     @Transactional
@@ -76,6 +79,7 @@ public class DiaryServiceImpl implements DiaryService {
         diary.setWeather(weather);
         diary.setCreatedAt(createdAt);
         diary.setUpdatedAt(LocalDateTime.now());
+        diary.setItemSelected(false);
         Diary savedDiary = diaryRepo.save(diary);
 
         // 상위 2개 감정 추출 및 저장
@@ -95,9 +99,6 @@ public class DiaryServiceImpl implements DiaryService {
             de.setWeight(weight);
             emotionRepo.save(de);
         });
-
-        List<CategoryEmotionItemDTO> emotionItems =
-          itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
         ///   실제 사용 기능]   ///
 
         ///   [테스트용 기능   /// OpenAPI 요금을 사용하지 않기 위함. 실제 사용 기능 부분을 주석처리 후 사용
@@ -112,6 +113,7 @@ public class DiaryServiceImpl implements DiaryService {
 //        diary.setWeather(weather);
 //        diary.setCreatedAt(createdAt);
 //        diary.setUpdatedAt(LocalDateTime.now());
+//        diary.setItemSelected(false);
 //        Diary savedDiary = diaryRepo.save(diary);
 //
 //        LinkedHashMap<String, Integer> top2 = new LinkedHashMap<>();
@@ -125,10 +127,17 @@ public class DiaryServiceImpl implements DiaryService {
 //            de.setWeight(weight);
 //            emotionRepo.save(de);
 //        });
-//
-//        List<CategoryEmotionItemDTO> emotionItems =
-//                itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
         ///   테스트용 기능]   ///
+
+        List<CategoryEmotionItemDTO> emotionItems =
+                itemService.findItemsByCategoryAndEmotion(categoryId, mainEmotion);
+
+        ItemSelectionDraft itemSelectionDraft = new ItemSelectionDraft();
+        itemSelectionDraft.setDiary(savedDiary);
+        itemSelectionDraft.setItemId1(emotionItems.get(0).getId());
+        itemSelectionDraft.setItemId2(emotionItems.get(1).getId());
+        itemSelectionDraft.setItemId3(emotionItems.get(2).getId());
+        itemSelectionDraftRepository.save(itemSelectionDraft);
 
         return new DiaryResponseDTO(
                 savedDiary.getId(),

@@ -2,6 +2,10 @@ package com.x1.groo.forest.emotion.command.application.service;
 
 import com.x1.groo.common.exception.CustomException;
 import com.x1.groo.common.exception.ErrorCode;
+import com.x1.groo.diary.command.domain.entity.Diary;
+import com.x1.groo.diary.command.domain.entity.ItemSelectionDraft;
+import com.x1.groo.diary.command.domain.repository.DiaryRepository;
+import com.x1.groo.diary.command.domain.repository.ItemSelectionDraftRepository;
 import com.x1.groo.forest.common.domain.aggregate.*;
 import com.x1.groo.common.sse.SseEventPublisher;
 import com.x1.groo.common.sse.SseEventType;
@@ -36,6 +40,8 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     private final MailboxRepository mailboxRepository;
     private final BackgroundRepository backgroundRepository;
     private final SseEventPublisher sseEventPublisher;
+    private final ItemSelectionDraftRepository itemSelectionDraftRepository;
+    private final DiaryRepository diaryRepository;
 
     /* 아이템 회수 */
     @Transactional
@@ -101,6 +107,7 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
     public void placeItem(int userId, RequestPlacementVO requestPlacementVO) {
         int itemId = requestPlacementVO.getItemId();
         int forestId = requestPlacementVO.getForestId();
+        int diaryId = requestPlacementVO.getDiaryId();
 
         // 1. 기존 forestItem 조회
         Optional<ForestItemEntity> optionalForestItem = forestItemRepository
@@ -135,11 +142,24 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
         placement.setHeight(requestPlacementVO.getItemHeight());
         placement.setWidth(requestPlacementVO.getItemWidth());
         placement.setZIndex(requestPlacementVO.getItemZIndex());
+        placementRepository.save(placement);
+
+        // 4. item_selection_draft 삭제
+        Optional<ItemSelectionDraft> ItemSelectionDraft = itemSelectionDraftRepository.findByDiaryId(diaryId);
+
+        if (ItemSelectionDraft.isPresent()) {
+            itemSelectionDraftRepository.delete(ItemSelectionDraft.get());
+
+            // diary 엔티티의 플래그 업데이트
+            diaryRepository.findById(diaryId).ifPresent(diary -> {
+                diary.setItemSelected(true);
+                diaryRepository.save(diary);
+            });
+        }
 
         // 브로드캐스트
         sseEventPublisher.publish(forestId, SseEventType.ITEM_PLACED,new ItemPlacedPayload(userId, forestId));
 
-        placementRepository.save(placement);
     }
 
     /* 배치된 아이템 재배치 */
@@ -293,5 +313,61 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
 
         // 브로드캐스트
         sseEventPublisher.publish(forestId, SseEventType.FOREST_UPDATED, new ForestUpdatedPayload(userId, forestId, newName));
+    }
+
+    // 아이템 보관함에 저장
+    @Transactional
+    @Override
+    public void saveForestItem(int userId, RequestSaveForestItemVO vo) {
+
+        // 숲 여부 확인
+        ForestEntity forest = forestRepository.findById(vo.getForestId())
+                .orElseThrow(() -> new CustomException(ErrorCode.FOREST_NOT_FOUND));
+
+        // 일기 존재 여부 확인
+        Diary diary = diaryRepository.findById(vo.getDiaryId())
+                .orElseThrow(() -> new CustomException(ErrorCode.DIARY_NOT_FOUND));
+
+        // 사용자 검증
+        if (diary.getUserId() != userId) {
+            throw new CustomException(ErrorCode.ITEM_STORAGE_ACCESS_DENIED);
+        }
+
+        // 아이템 저장 선택지 검증
+        ItemSelectionDraft draft = itemSelectionDraftRepository.findByDiaryId(vo.getDiaryId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ITEM_STORAGE_ACCESS_DENIED));
+
+        int selectedItemId = vo.getItemId();
+
+        // 선택지 안에서 선택했는지 검증
+        boolean isValidSelection =
+                        selectedItemId == draft.getItemId1() ||
+                        selectedItemId == draft.getItemId2() ||
+                        selectedItemId == draft.getItemId3();
+
+        if (!isValidSelection) {
+            throw new CustomException(ErrorCode.ITEM_STORAGE_ACCESS_DENIED);
+        }
+
+        Optional<ForestItemEntity> optionalForestItem = forestItemRepository
+                .findByItemIdAndForestId(selectedItemId, forest.getId());
+
+        ForestItemEntity forestItem;
+
+        if (optionalForestItem.isPresent()) {
+            forestItem = optionalForestItem.get();
+            forestItem.incrementTotalCount();
+        } else {
+            forestItem = new ForestItemEntity();
+            forestItem.setItemId(selectedItemId);
+            forestItem.setTotalCount(1);
+            forestItem.setPlacedCount(0);
+            forestItem.setForest(forest);
+
+            forestItemRepository.save(forestItem);
+        }
+
+        diary.setItemSelected(true);
+        itemSelectionDraftRepository.delete(draft);
     }
 }
