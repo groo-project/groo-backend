@@ -168,7 +168,6 @@ public class CommandMateServiceImpl implements CommandMateService {
             throw new CustomException(ErrorCode.FOREST_ALREADY_ACCEPTED_INVITE);
         }
 
-//        ForestEntity lockedForest = forestRepository.lockById(forestId); // 여기서 잠금
         int count = sharedForestRepository.countByForestIdForUpdate(forestId);
         if (count >= 4) {
             throw new CustomException(ErrorCode.FOREST_FULL);

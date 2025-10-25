@@ -1,5 +1,7 @@
 package com.x1.groo.forest.mate.command.application.controller;
 
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.forest.mate.command.application.service.CommandMateService;
 import com.x1.groo.forest.mate.command.domain.vo.CreateInviteRequest;
@@ -56,7 +58,12 @@ public class CommandMateController {
     public ResponseEntity<Map<String,Integer>> acceptInvite(@AuthenticationPrincipal CustomUserDetails user,
                                                @PathVariable String inviteCode) {
 
+        if(user == null) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+
         int userId = user.getUserId();
+
         int forestId = commandMateService.acceptInvite(userId, inviteCode);
 
         return ResponseEntity.ok(Map.of("forestId",forestId));

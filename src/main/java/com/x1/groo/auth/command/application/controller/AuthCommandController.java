@@ -4,6 +4,8 @@ import com.x1.groo.auth.command.application.vo.GoogleLoginRequestVO;
 import com.x1.groo.auth.command.application.vo.RefreshResultVO;
 import com.x1.groo.auth.command.application.service.AuthCommandService;
 import com.x1.groo.auth.command.util.CookieUtil;
+import com.x1.groo.common.exception.CustomException;
+import com.x1.groo.common.exception.ErrorCode;
 import com.x1.groo.security.CustomUserDetails;
 import com.x1.groo.security.util.JwtUtil;
 import com.x1.groo.user.dto.LoginDTO;
@@ -39,6 +41,11 @@ public class AuthCommandController {
                                      @CookieValue(value = "refreshToken", required = false) String rt) {
 
         try {
+
+            if(rt == null) {
+                throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+            }
+
             RefreshResultVO result = authCommandService.refresh(rt);
 
             CookieUtil.setRefreshCookie( res, result.getNewRefreshToken(), result.getRefreshTtl());

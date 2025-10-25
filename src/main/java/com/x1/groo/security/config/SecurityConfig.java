@@ -72,7 +72,7 @@ public class SecurityConfig  {
 
                         // 모두 접근 갸능
                         .requestMatchers(
-                                "/api/auth/login", "/api/auth/register", "/api/auth/reissue",
+                                "/api/auth/**",
                                 "/api/mails/**",
                                 "/api/image/**",
                                 "/error",

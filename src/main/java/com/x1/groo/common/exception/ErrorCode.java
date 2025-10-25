@@ -64,6 +64,9 @@ public enum ErrorCode {
     // forest 내 background 관련
     BACKGROUND_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "배경을 찾을 수 없습니다."),
 
+    // token
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND,"T001" , "refreshToken을 찾을 수 없습니다."),
+
     // google
     IDTOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "G001", "idToken이 누락되었습니다."),
     INVALID_IDTOKEN(HttpStatus.UNAUTHORIZED, "G002", "검증에 실패한 Google ID 토큰입니다."),
