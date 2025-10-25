@@ -24,4 +24,6 @@ public interface CommandEmotionForestService {
     void updateForestName(int forestId, int userId, String newName);
 
     void placeStoredItem(int userId, RequestReplantVO requestReplantVO);
+
+    void saveForestItem(int userId, RequestSaveForestItemVO vo);
 }

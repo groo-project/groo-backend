@@ -186,5 +186,12 @@ public class CommandEmotionForestController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "기록의 조각 보관함에 저장")
+    @PostMapping("/items/storage")
+    public ResponseEntity<Void> saveForestItem(@AuthenticationPrincipal CustomUserDetails user,
+                                                  @RequestBody RequestSaveForestItemVO vo) {
+        commandEmotionForestService.saveForestItem(user.getUserId(), vo);
 
+        return ResponseEntity.ok().build();
+    }
 }
