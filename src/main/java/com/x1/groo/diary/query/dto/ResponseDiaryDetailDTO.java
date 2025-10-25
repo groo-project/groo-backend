@@ -15,4 +15,5 @@ public class ResponseDiaryDetailDTO {
     private String content;             // 일기의 내용
     private LocalDateTime createdAt;    // 일기 작성 날짜 + 시간
     private List<String> emotions;      // 감정 리스트
+    private boolean isItemSelected;     // 아이템 선택 여부
 }

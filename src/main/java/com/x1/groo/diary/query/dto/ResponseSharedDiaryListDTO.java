@@ -13,4 +13,5 @@ public class ResponseSharedDiaryListDTO {
     private int diaryId;
     private int userId;
     private LocalDateTime createdAt;
+    private boolean isItemSelected;
 }

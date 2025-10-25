@@ -8,6 +8,7 @@
         SELECT
                d.id AS diary_id
              , d.created_at
+             , d.is_item_selected
           FROM diary d
          WHERE d.user_id = #{userId}
            AND d.forest_id = #{forestId}
@@ -18,6 +19,7 @@
         <id property="diaryId" column="diary_id"/>
         <result property="content" column="content"/>
         <result property="createdAt" column="created_at"/>
+        <result property="isItemSelected" column="is_item_selected" />
         <collection property="emotions" ofType="string">
             <result column="emotion_name" />
         </collection>
@@ -27,6 +29,7 @@
                d.id AS diary_id
              , d.content
              , d.created_at
+             , d.is_item_selected
              , de.emotion AS emotion_name
           FROM diary d
           LEFT JOIN diary_emotion de ON d.id = de.diary_id
@@ -39,6 +42,7 @@
                d.id AS diary_id
              , d.user_id
              , d.created_at
+             , d.is_item_selected
           FROM diary d
           JOIN forest f ON d.forest_id = f.id
           JOIN shared_forest sf ON f.id = sf.forest_id
@@ -52,6 +56,7 @@
         <result property="createdAt" column="created_at"/>
         <result property="userId" column="user_id" />
         <result property="nickname" column="nickname" />
+        <result property="isItemSelected" column="is_item_selected" />
         <collection property="emotions" ofType="string">
             <result column="emotion_name" />
         </collection>
@@ -61,6 +66,7 @@
                d.id AS diary_id
              , d.content
              , d.created_at
+             , d.is_item_selected
              , u.id AS user_id
              , u.nickname
              , de.emotion AS emotion_name
@@ -74,5 +80,43 @@
             #{id}
         </foreach>
         AND sf.user_id = #{userId}
+    </select>
+
+    <resultMap id="getDraftedItemsMap" type="com.x1.groo.diary.query.dto.ResponseDraftedItemsDTO">
+        <id property="id" column="id" />
+        <result property="diaryId" column="diary_id"/>
+        <result property="itemId1" column="item_id_1"/>
+        <result property="itemName1" column="item_name_1"/>
+        <result property="itemImageUrl1" column="item_image_url_1"/>
+        <result property="itemId2" column="item_id_2"/>
+        <result property="itemName2" column="item_name_2"/>
+        <result property="itemImageUrl2" column="item_image_url_2"/>
+        <result property="itemId3" column="item_id_3"/>
+        <result property="itemName3" column="item_name_3"/>
+        <result property="itemImageUrl3" column="item_image_url_3"/>
+    </resultMap>
+    <select id="getDraftedItems" resultMap="getDraftedItemsMap">
+        SELECT
+               isd.id
+             , isd.diary_id
+
+             , i1.id AS item_id_1
+             , i1.name AS item_name_1
+             , i1.image_url AS item_image_url_1
+
+             , i2.id AS item_id_2
+             , i2.name AS item_name_2
+             , i2.image_url AS item_image_url_2
+
+             , i3.id AS item_id_3
+             , i3.name AS item_name_3
+             , i3.image_url AS item_image_url_3
+          FROM item_selection_draft isd
+          JOIN diary d ON isd.diary_id = d.id
+          JOIN item i1 ON isd.item_id_1 = i1.id
+          JOIN item i2 ON isd.item_id_2 = i2.id
+          JOIN item i3 ON isd.item_id_3 = i3.id
+         WHERE d.user_id = #{userId}
+           AND isd.diary_id = #{diaryId}
     </select>
 </mapper>

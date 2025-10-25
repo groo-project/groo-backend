@@ -12,4 +12,5 @@ import java.time.LocalDateTime;
 public class ResponsePersonalDiaryListDTO {
     private int diaryId;
     private LocalDateTime createdAt;
+    private boolean isItemSelected;
 }
