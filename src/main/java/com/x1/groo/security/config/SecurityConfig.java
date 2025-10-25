@@ -50,7 +50,7 @@ public class SecurityConfig  {
                         .requestMatchers("/api/logs/**").hasRole("ADMIN")
 
                         // health 체크
-                         .requestMatchers("/", "/health/**", "/healthz", "/actuator/health").permitAll()
+                         .requestMatchers("/", "/health/**", "/actuator/health").permitAll()
 
                         // prometheus
                         .requestMatchers("/actuator/prometheus").permitAll()
@@ -72,7 +72,7 @@ public class SecurityConfig  {
 
                         // 모두 접근 갸능
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/login", "/api/auth/register", "/api/auth/reissue",
                                 "/api/mails/**",
                                 "/api/image/**",
                                 "/error",
