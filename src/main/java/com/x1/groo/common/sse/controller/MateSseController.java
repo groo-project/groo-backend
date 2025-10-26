@@ -34,10 +34,7 @@ public class MateSseController {
                                                 @RequestHeader(value = "Last-Event-ID", required = false) String lastId,
                                                 @AuthenticationPrincipal CustomUserDetails user) {
 
-
-        System.out.println("=== SSE 연결 요청 시작 ===");
-        System.out.println("forestId: " + forestId);
-        System.out.println("principal.getUserId(): " + user.getUserId());
+        // sse 연결 요청 시작
 
          // 접근 권한 체크
         boolean allowed = mateSseService.checkForestAccess(user.getUserId(), forestId);
@@ -50,16 +47,17 @@ public class MateSseController {
         }
 
         // 성공인 경우에만 SSE 시작 + Content-Type 설정
+        // sseEmitter 생성 완료
         SseEmitter em = registry.add(forestId, 10 * 60_000L);
-        System.out.println("SseEmitter 생성 완료");
 
+        // sse 연결 완료
         em.onCompletion(() -> {
-            System.out.println("SSE 연결 완료 - 정리");
             registry.remove(forestId, em);
             em.complete();
         });
+
+        // sse 연결 타임아웃
         em.onTimeout(() -> {
-            System.out.println("SSE 연결 타임아웃 - 정리");
             registry.remove(forestId, em);
         });
 
