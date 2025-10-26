@@ -62,10 +62,8 @@ public class SseEmitterRegistry {
 
     /** 변경사항 푸시 (죽은 emitter는 정리) */
     public void sendToForest(int forestId, String eventName, Object payload, @Nullable String id) {
-        System.out.println("=== SseEmitterRegistry.sendToForest 시작 ===");
-        System.out.println("Forest ID: " + forestId);
-        System.out.println("Event Type: " + eventName);
-        System.out.println("Payload: " + payload);
+
+        // sseEmitterRegistry.sendToForest 시작
 
         var list = byForest.getOrDefault(forestId, new CopyOnWriteArrayList<>());
         for (SseEmitter em : list) {
@@ -80,8 +78,6 @@ public class SseEmitterRegistry {
                 remove(forestId, em);
             }
         }
-
-        System.out.println("=== SseEmitterRegistry.sendToForest 완료 ===");
 
     }
 

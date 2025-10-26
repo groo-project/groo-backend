@@ -17,10 +17,7 @@ public class ForestEventService {
 
     public void sendEvent(int forestId, String eventName, Object payload) {
 
-        System.out.println("=== ForestEventService.sendEvent 시작 ===");
-        System.out.println("Forest ID: " + forestId);
-        System.out.println("Event Type: " + eventName);
-        System.out.println("Payload: " + payload);
+        // sendEvent 시작
 
         var emitters = registry.getAll(forestId);
         if (emitters.isEmpty()) return;
@@ -42,10 +39,6 @@ public class ForestEventService {
         try {
             emitter.send(SseEmitter.event().name(eventName).data(payload));
         } catch (Exception e) {
-            // IOException, IllegalStateException 등: 끊긴 연결이니 정리
-            // forestId를 알 수 없으므로 registry에서 일괄 제거 지원이 어렵다?
-            // => 보통 emitter->forestId 역맵을 두거나, remove 시 forestId를 함께 전달하도록 호출부에서 처리
-            // 여기서는 간단히 complete로 종료 유도
             try { emitter.complete(); } catch (Exception ignore) {}
         }
     }
