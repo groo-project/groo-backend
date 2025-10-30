@@ -110,11 +110,8 @@ public class CommandMateServiceImpl implements CommandMateService {
 
         // 초대 링크 존재
         if(invite != null) {
-            if(invite.getExpiresAt().isBefore(LocalDateTime.now())) { // 초대 링크 만료 시
-                invite.setExpiresAt(LocalDateTime.now().plusHours(24)); // 24시간 연장
-                forestInviteRepository.save(invite);
-            }
-            return invite.getCode();
+            invite.setExpiresAt(LocalDateTime.now().plusHours(24));
+            forestInviteRepository.save(invite);
         }
 
         String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
