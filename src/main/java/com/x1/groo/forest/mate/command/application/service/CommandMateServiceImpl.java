@@ -112,6 +112,7 @@ public class CommandMateServiceImpl implements CommandMateService {
         if(invite != null) {
             invite.setExpiresAt(LocalDateTime.now().plusHours(24));
             forestInviteRepository.save(invite);
+            return invite.getCode();
         }
 
         String inviteCode = UUID.randomUUID().toString().replace("-","").substring(0,16);
