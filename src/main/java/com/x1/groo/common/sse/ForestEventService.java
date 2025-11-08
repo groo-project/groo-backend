@@ -24,7 +24,7 @@ public class ForestEventService {
 
         // 비동기 이벤트 전송
         for (SseEmitter emitter : emitters) {
-            executor.execute(() -> safeSend(emitter, eventName, payload));
+            executor.execute(() -> safeSend(forestId, emitter, eventName, payload));
         }
 
         System.out.println("=== ForestEventService.sendEvent 완료 ===");
@@ -35,10 +35,12 @@ public class ForestEventService {
         sendEvent(forestId, "HEARTBEAT", "pong");
     }
 
-    private void safeSend(SseEmitter emitter, String eventName, Object payload) {
+    private void safeSend(int forestId, SseEmitter emitter, String eventName, Object payload) {
         try {
             emitter.send(SseEmitter.event().name(eventName).data(payload));
         } catch (Exception e) {
+            // Broken pipe 발생 -> emitter 정리
+            registry.remove(forestId, emitter);
             try { emitter.complete(); } catch (Exception ignore) {}
         }
     }
