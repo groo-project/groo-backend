@@ -32,6 +32,7 @@
              , p.position_y AS placement_position_y
              , p.width AS placement_width
              , p.height AS placement_height
+             , p.z_index AS placement_z_index
              , fi.id AS forest_item_id
              , fi.placed_count
              , i.id AS item_id

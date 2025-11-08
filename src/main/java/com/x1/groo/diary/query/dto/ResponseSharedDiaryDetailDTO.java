@@ -14,7 +14,7 @@ public class ResponseSharedDiaryDetailDTO {
     private int diaryId;                // 일기 ID (감정 매핑용)
     private String content;             // 일기의 내용
     private LocalDateTime createdAt;    // 일기 작성 날짜 + 시간
-    private int userId;                 // 작성자 아이디
+    private Integer userId;             // 작성자 아이디
     private String nickname;            // 작성자 닉네임
     private List<String> emotions;      // 감정 리스트
     private boolean isItemSelected;     // 아이템 선택 여부

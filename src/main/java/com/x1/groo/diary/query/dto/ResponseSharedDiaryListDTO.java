@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 public class ResponseSharedDiaryListDTO {
     private int diaryId;
-    private int userId;
+    private Integer userId;
     private LocalDateTime createdAt;
     private boolean isItemSelected;
 }

@@ -217,19 +217,25 @@ public class AuthCommandServiceImpl implements AuthCommandService{
     }
 
     private String generateUniqueNickname(String baseNickname) {
-        List<UserEntity> existingNickname = userRepository.findAllByNicknameStartingWith(baseNickname);
+        List<UserEntity> existingNicknames = userRepository.findAllByNicknameStartingWith(baseNickname);
 
-        int maxSuffix = existingNickname.stream()
-                .map(u -> u.getNickname().replace("baseNickname", ""))
-                .filter(suffix -> suffix.matches("\\d+"))
+        int maxSuffix = existingNicknames.stream()
+                .map(UserEntity::getNickname)
+                .filter(nickname -> !nickname.equals(baseNickname))
+                .map(nickname -> nickname.substring(baseNickname.length()))
+                .filter(suffix -> suffix.matches("^\\d+$"))
                 .mapToInt(Integer::parseInt)
                 .max()
                 .orElse(0);
 
-        return maxSuffix == 0 && existingNickname.contains(baseNickname)
-                ? baseNickname : baseNickname + (maxSuffix + 1);
+        boolean baseNicknameUsed = existingNicknames.stream()
+                .anyMatch(u -> u.getNickname().equals(baseNickname));
 
-
+        if (!baseNicknameUsed) {
+            return baseNickname;
+        } else {
+            return baseNickname + (maxSuffix + 1);
+        }
     }
 
     @Transactional
