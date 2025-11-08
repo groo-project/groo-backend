@@ -198,12 +198,8 @@ public class UserServiceImpl implements UserService {
         int userId = jwtUtil.getUserId(jws);
         String newJti = jws.getBody().getId();
 
-        RefreshToken next = new RefreshToken();
-        next.setUserId(userId);
-        next.setJtiHash(HashUtil.sha256(newJti));
-        next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
-        refreshTokenRepository.deleteAllByUserId(userId);
-        refreshTokenRepository.save(next);
+        refreshTokenRepository.updateRefreshToken(userId, newJti, LocalDateTime.now().plus(jwtUtil.getRefreshTtl()) );
+
 
         return LoginDTO.builder()
                 .accessToken(accessToken)
