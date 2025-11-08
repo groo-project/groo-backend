@@ -35,7 +35,7 @@ public class AuthCommandController {
 
 
 
-    @Operation( summary = "AT/RT 재발급")
+    @Operation( summary = "AT 재발급")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletResponse res,
                                      @CookieValue(value = "refreshToken", required = false) String rt) {
@@ -48,7 +48,7 @@ public class AuthCommandController {
 
             RefreshResultVO result = authCommandService.refresh(rt);
 
-            CookieUtil.setRefreshCookie( res, result.getNewRefreshToken(), result.getRefreshTtl());
+            CookieUtil.setAccessCookie( res, result.getAccessToken(), jwtUtil.getAccessTtl());
 
             return ResponseEntity.ok(Map.of("accessToken", result.getAccessToken()));
 

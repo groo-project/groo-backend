@@ -66,6 +66,8 @@ public enum ErrorCode {
 
     // token
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND,"T001" , "refreshToken을 찾을 수 없습니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "T002", "토큰이 만료되었습니다."),
+    REFRESH_TOKEN_USER_MISMATCH(HttpStatus.UNAUTHORIZED, "T003", "토큰의 사용자 정보가 일치하지 않습니다." ),
 
     // google
     IDTOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "G001", "idToken이 누락되었습니다."),
