@@ -71,10 +71,10 @@
              , u.nickname
              , de.emotion AS emotion_name
           FROM diary d
-          JOIN user u ON d.user_id = u.id
           JOIN forest f ON d.forest_id = f.id
           JOIN shared_forest sf ON f.id = sf.forest_id
           JOIN diary_emotion de ON d.id = de.diary_id
+          LEFT JOIN user u ON d.user_id = u.id
          WHERE d.id IN
         <foreach item="id" collection="diaryIds" open="(" separator="," close=")">
             #{id}

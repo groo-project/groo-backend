@@ -170,6 +170,8 @@ public class CommandEmotionForestServiceImpl implements CommandEmotionForestServ
             throw new CustomException(ErrorCode.PLACEMENT_NOT_FOUND);
         }
 
+        System.out.println(replacementVOList.get(0).getItemZIndex());
+
         Integer forestId = null;
 
         for (RequestReplacementVO vo : replacementVOList) {
