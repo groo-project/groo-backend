@@ -94,36 +94,23 @@ public class AuthCommandServiceImpl implements AuthCommandService{
         }
 
         int userId = jwtUtil.getUserId(jws);
-        String jti = jws.getBody().getId();
 
         int subjectUserId = Integer.parseInt(jws.getBody().getSubject());
         if (subjectUserId != userId) {
-            throw new BadCredentialsException("User ID mismatch in JWT subject");
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_USER_MISMATCH);
         }
 
-        java.util.Optional<RefreshToken> opt = refreshTokenRepository.findByUserId(subjectUserId);
+        List<RefreshToken> tokens = refreshTokenRepository.findAllByUserId(subjectUserId);
 
-        if (opt.isEmpty()) {
-            throw new BadCredentialsException("RT_NOT_FOUND_OR_REUSED");
+        if (tokens.isEmpty()) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
+        RefreshToken current = tokens.get(0);
 
-
-        RefreshToken current = opt.get();
         if (current.isRevoked() || current.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
-            throw new BadCredentialsException("RT_EXPIRED_OR_REVOKED");
+            refreshTokenRepository.delete(current);
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
-        // 회전: 기존 RT 삭제 → 새 RT 발급/저장
-        refreshTokenRepository.delete(current);
-
-        String newRt = jwtUtil.generateRefreshToken(userId);
-        Jws<Claims> newRtJws = jwtUtil.parserClaimsJws(newRt);
-        String newJti = newRtJws.getBody().getId();
-
-        RefreshToken next = new RefreshToken();
-        next.setUserId(userId);
-        next.setJtiHash(HashUtil.sha256(newJti));
-        next.setExpiresAt(java.time.LocalDateTime.now().plus(jwtUtil.getRefreshTtl()));
-        refreshTokenRepository.save(next);
 
         UserDTO userDTO = userService.getUserById(String.valueOf(userId));
         CustomUserDetails user = new CustomUserDetails(userDTO);
@@ -133,7 +120,7 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .collect(Collectors.toList());
 
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getUsername(), user.getNickname(), roles);
-        return new RefreshResultVO(accessToken, newRt, jwtUtil.getRefreshTtl());
+        return new RefreshResultVO(accessToken, rt, jwtUtil.getRefreshTtl());
     }
 
     @Transactional
