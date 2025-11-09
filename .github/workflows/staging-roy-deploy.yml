@@ -134,10 +134,12 @@ jobs:
           
           COMMANDS_TO_RUN="docker pull ${IMAGE_TAG}; if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then docker stop ${CONTAINER_NAME}; docker rm ${CONTAINER_NAME}; fi; ${DOCKER_RUN_CMD}; docker rmi \$(docker images -f 'dangling=true' -q)"
           
-          echo "COMMANDS_TO_RUN: ${COMMANDS_TO_RUN}"
+          COMMANDS_TO_RUN_ESCAPED=$(echo ${COMMANDS_TO_RUN} | sed "s/'/\\\"/g")
+          
+          echo "COMMANDS_TO_RUN_ESCAPED: ${COMMANDS_TO_RUN_ESCAPED}"
           
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Pull and deploy Docker image" \
-            --parameters "commands=[\"${COMMANDS_TO_RUN}\"]"
+            --parameters "commands=[\"${COMMANDS_TO_RUN_ESCAPED}\"]"
