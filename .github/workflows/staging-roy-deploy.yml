@@ -10,6 +10,7 @@ env:
   DOCKER_PASSWORD: ${{ secrets.R_DOCKER_PASSWORD }}
   IMAGE_NAME: ${{ secrets.R_DOCKER_IMAGENAME }}
 
+  # ... (생략된 기타 환경 변수) ...
   MAIL_USERNAME: ${{ secrets.R_MAIL_USERNAME }}
   MAIL_PASSWORD: ${{ secrets.R_MAIL_PASSWORD }}
   SERVER_PORT: ${{ secrets.R_SERVER_PORT }}
@@ -33,7 +34,6 @@ env:
   KAKAO_REDIRECT_URI: ${{ secrets.R_KAKAO_REDIRECT_URI }}
   GOOGLE_CLIENT_ID: ${{ secrets.J_GOOGLE_CLIENT_ID }}
 
-  # AWS/EC2 Settings for Deployment (Copied from original workflow)
   EC2_REGION: ${{ secrets.R_EC2_REGION }}
   EC2_ACCESS_KEY: ${{ secrets.R_EC2_ACCESS_KEY }}
   EC2_SECRET_ACCESS_KEY: ${{ secrets.R_EC2_SECRET_ACCESS_KEY }}
@@ -100,6 +100,7 @@ jobs:
           CONTAINER_NAME="roy-app-staging"
           HOST_PORT="${{ env.SERVER_PORT }}"
           
+          # 환경 변수 정의 (이전과 동일)
           ENV_VARS_CMD="\
             -e MAIL_USERNAME='${{ env.MAIL_USERNAME }}' \
             -e MAIL_PASSWORD='${{ env.MAIL_PASSWORD }}' \
@@ -126,13 +127,11 @@ jobs:
             -e SPRING_PROFILES_ACTIVE=docker \
             "
           
-          # SSM을 사용하여 EC2에 명령을 전송합니다.
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --comment "Pull and deploy Docker image $IMAGE_TAG with runtime environment variables" \
             --parameters 'commands=[
-              "docker login -u ${{ env.DOCKER_USERNAME }} -p ${{ env.DOCKER_PASSWORD }}",
               "docker pull '$IMAGE_TAG'",
               "if [ $(docker ps -a -q -f name='$CONTAINER_NAME') ]; then docker stop '$CONTAINER_NAME' && docker rm '$CONTAINER_NAME'; fi",
               "docker run -d --restart always --name '$CONTAINER_NAME' -p '$HOST_PORT':'$HOST_PORT' '$ENV_VARS_CMD' '$IMAGE_TAG'",
