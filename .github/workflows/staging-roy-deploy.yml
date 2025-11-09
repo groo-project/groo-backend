@@ -100,8 +100,7 @@ jobs:
           CONTAINER_NAME="roy-app-staging"
           HOST_PORT="${{ env.SERVER_PORT }}"
           
-          # 환경 변수 정의 (이전과 동일)
-          ENV_VARS_CMD="\
+          DOCKER_RUN_CMD="docker run -d --restart always --name ${CONTAINER_NAME} -p ${HOST_PORT}:${HOST_PORT} \
             -e MAIL_USERNAME='${{ env.MAIL_USERNAME }}' \
             -e MAIL_PASSWORD='${{ env.MAIL_PASSWORD }}' \
             -e SERVER_PORT='${{ env.SERVER_PORT }}' \
@@ -125,15 +124,22 @@ jobs:
             -e KAKAO_REDIRECT_URI='${{ env.KAKAO_REDIRECT_URI }}' \
             -e GOOGLE_CLIENT_ID='${{ env.GOOGLE_CLIENT_ID }}' \
             -e SPRING_PROFILES_ACTIVE=docker \
-            "
-          
+            ${IMAGE_TAG}"
+            
+          COMMANDS_TO_RUN="
+            docker pull ${IMAGE_TAG}
+            
+            if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then 
+              docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}
+            fi
+            
+            ${DOCKER_RUN_CMD}
+            
+            docker rmi \$(docker images -f 'dangling=true' -q)
+          "
+            
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
-            --comment "Pull and deploy Docker image $IMAGE_TAG with runtime environment variables" \
-            --parameters 'commands=[
-              "docker pull '$IMAGE_TAG'",
-              "if [ $(docker ps -a -q -f name='$CONTAINER_NAME') ]; then docker stop '$CONTAINER_NAME' && docker rm '$CONTAINER_NAME'; fi",
-              "docker run -d --restart always --name '$CONTAINER_NAME' -p '$HOST_PORT':'$HOST_PORT' '$ENV_VARS_CMD' '$IMAGE_TAG'",
-              "docker rmi $(docker images -f 'dangling=true' -q)"
-            ]'
+            --comment "Pull and deploy Docker image $IMAGE_TAG" \
+            --parameters "commands=['${COMMANDS_TO_RUN}']"
