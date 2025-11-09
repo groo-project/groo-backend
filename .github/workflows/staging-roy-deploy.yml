@@ -129,7 +129,9 @@ jobs:
           
           DOCKER_RUN_CMD_ONE_LINE=$(echo $DOCKER_RUN_CMD | tr -d '\n' | sed 's/\\//g' | sed 's/  */ /g')
           
-          COMMANDS_TO_RUN="docker pull ${IMAGE_TAG}; if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then docker stop ${CONTAINER_NAME}; docker rm ${CONTAINER_NAME}; fi; ${DOCKER_RUN_CMD_ONE_LINE}; docker rmi \$(docker images -f 'dangling=true' -q)"
+          COMMANDS_TO_RUN="docker pull ${IMAGE_TAG}; if [ \\$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then docker stop ${CONTAINER_NAME}; docker rm ${CONTAINER_NAME}; fi; ${DOCKER_RUN_CMD_ONE_LINE}; docker rmi \\$(docker images -f \\\'dangling=true\\\' -q)"
+          
+          echo "COMMANDS_TO_RUN: ${COMMANDS_TO_RUN}"
           
           aws ssm send-command \
             --targets "Key=instanceIds,Values=${EC2_INSTANCE_ID}" \
