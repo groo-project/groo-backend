@@ -100,41 +100,38 @@ jobs:
           IMAGE_TAG="${{ env.IMAGE_NAME }}:latest"
           CONTAINER_NAME="roy-app-staging"
           HOST_PORT="${{ env.SERVER_PORT }}"
-          
-          DOCKER_RUN_CMD=$(cat <<-EOF
-          docker run -d --restart always --name ${CONTAINER_NAME} -p ${HOST_PORT}:${HOST_PORT} \
-            -e MAIL_USERNAME="${{ env.MAIL_USERNAME }}" \
-            -e MAIL_PASSWORD="${{ env.MAIL_PASSWORD }}" \
-            -e SERVER_PORT="${{ env.SERVER_PORT }}" \
-            -e TOKEN_SECRET="${{ env.TOKEN_SECRET }}" \
-            -e TOKEN_ACCESS_EXP="${{ env.TOKEN_ACCESS_EXP }}" \
-            -e TOKEN_REFRESH_EXP="${{ env.TOKEN_REFRESH_EXP }}" \
-            -e S3_BUCKET="${{ env.S3_BUCKET }}" \
-            -e S3_REGION="${{ env.S3_REGION }}" \
-            -e S3_ACCESS_KEY="${{ env.S3_ACCESS_KEY }}" \
-            -e S3_SECRET_KEY="${{ env.S3_SECRET_KEY }}" \
-            -e OPEN_API_KEY="${{ env.OPEN_API_KEY }}" \
-            -e DB_CLASS_NAME="${{ env.DB_CLASS_NAME }}" \
-            -e DB_URL="${{ env.DB_URL }}" \
-            -e DB_USERNAME="${{ env.DB_USERNAME }}" \
-            -e DB_PASSWORD="${{ env.DB_PASSWORD }}" \
-            -e REDIS_HOST="${{ env.REDIS_HOST }}" \
-            -e REDIS_PORT="${{ env.REDIS_PORT }}" \
-            -e DISCORD_WEBHOOK_URL="${{ env.DISCORD_WEBHOOK_URL }}" \
-            -e KAKAO_CLIENT_ID="${{ env.KAKAO_CLIENT_ID }}" \
-            -e KAKAO_CLIENT_SECRET="${{ env.KAKAO_CLIENT_SECRET }}" \
-            -e KAKAO_REDIRECT_URI="${{ env.KAKAO_REDIRECT_URI }}" \
-            -e GOOGLE_CLIENT_ID="${{ env.GOOGLE_CLIENT_ID }}" \
-            -e SPRING_PROFILES_ACTIVE=docker \
-            ${IMAGE_TAG}
-          EOF
-          )
+            
+          ENV_VARS="-e MAIL_USERNAME='${{ env.MAIL_USERNAME }}' \
+            -e MAIL_PASSWORD='${{ env.MAIL_PASSWORD }}' \
+            -e SERVER_PORT='${{ env.SERVER_PORT }}' \
+            -e TOKEN_SECRET='${{ env.TOKEN_SECRET }}' \
+            -e TOKEN_ACCESS_EXP='${{ env.TOKEN_ACCESS_EXP }}' \
+            -e TOKEN_REFRESH_EXP='${{ env.TOKEN_REFRESH_EXP }}' \
+            -e S3_BUCKET='${{ env.S3_BUCKET }}' \
+            -e S3_REGION='${{ env.S3_REGION }}' \
+            -e S3_ACCESS_KEY='${{ env.S3_ACCESS_KEY }}' \
+            -e S3_SECRET_KEY='${{ env.S3_SECRET_KEY }}' \
+            -e OPEN_API_KEY='${{ env.OPEN_API_KEY }}' \
+            -e DB_CLASS_NAME='${{ env.DB_CLASS_NAME }}' \
+            -e DB_URL='${{ env.DB_URL }}' \
+            -e DB_USERNAME='${{ env.DB_USERNAME }}' \
+            -e DB_PASSWORD='${{ env.DB_PASSWORD }}' \
+            -e REDIS_HOST='${{ env.REDIS_HOST }}' \
+            -e REDIS_PORT='${{ env.REDIS_PORT }}' \
+            -e DISCORD_WEBHOOK_URL='${{ env.DISCORD_WEBHOOK_URL }}' \
+            -e KAKAO_CLIENT_ID='${{ env.KAKAO_CLIENT_ID }}' \
+            -e KAKAO_CLIENT_SECRET='${{ env.KAKAO_CLIENT_SECRET }}' \
+            -e KAKAO_REDIRECT_URI='${{ env.KAKAO_REDIRECT_URI }}' \
+            -e GOOGLE_CLIENT_ID='${{ env.GOOGLE_CLIENT_ID }}' \
+            -e SPRING_PROFILES_ACTIVE=docker"
         
-          DOCKER_RUN_CMD=$(echo $DOCKER_RUN_CMD | tr -d '\n' | sed 's/\\//g' | sed 's/  */ /g')
+          COMMAND_TO_RUN="docker pull ${IMAGE_TAG} && \
+            (docker stop ${CONTAINER_NAME} || true) && \
+            (docker rm ${CONTAINER_NAME} || true) && \
+            docker run -d --restart always --name ${CONTAINER_NAME} -p ${HOST_PORT}:${HOST_PORT} ${ENV_VARS} ${IMAGE_TAG} && \
+            docker rmi \$(docker images -f 'dangling=true' -q)"
           
-          COMMAND_TO_RUN="docker pull ${IMAGE_TAG}; if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then docker stop ${CONTAINER_NAME}; docker rm ${CONTAINER_NAME}; fi; ${DOCKER_RUN_CMD}; docker rmi \$(docker images -f 'dangling=true' -q)"
-          
-          ESCAPED_COMMAND=$(echo "${COMMAND_TO_RUN}" | sed 's/"/\\"/g')
+          ESCAPED_COMMAND=$(echo "${COMMAND_TO_RUN}" | sed 's/"/\\"/g' | tr -d '\n')
           
           cat > ssm_command.json <<- EOL
           {
