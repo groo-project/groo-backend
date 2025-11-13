@@ -42,7 +42,7 @@ public class JwtUtil {
         this.refreshTokenRepository = refreshTokenRepository;
     }
 
-    public String generateAccessToken(int userId, String email, String nickname, List<String> roles) {
+    public String generateAccessToken(int userId, String email, String nickname, List<String> roles, String oAuthProvider) {
         Date now = new Date();
 
         // 권한 문자열 목록
@@ -56,6 +56,7 @@ public class JwtUtil {
                 .claim("auth", roles)
                 .claim("typ", "AT")
                 .claim("nickname", nickname)
+                .claim("oAuthProvider", oAuthProvider)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + accessExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS512)

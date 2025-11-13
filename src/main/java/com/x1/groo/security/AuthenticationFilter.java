@@ -74,7 +74,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         CustomUserDetails userDetails = (CustomUserDetails) authResult.getPrincipal();
 
         // access
-        String accessToken = jwtUtil.generateAccessToken(userId, email, principal.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(
+                userId, email, principal.getNickname(), roles, null);
 
         response.addHeader("Authorization", "Bearer " + accessToken);
 

@@ -17,6 +17,7 @@ public class UserDTO {
     private String nickname;
     private String role;
     private int forestId;
+    private String oauthProvider;
 
 
 
@@ -40,6 +41,7 @@ public class UserDTO {
                 .email(e.getEmail())
                 .nickname(e.getNickname())
                 .role(e.getRole().name())
+                .oauthProvider(e.getOauthProvider())
                 .build();
 }
 

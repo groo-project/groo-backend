@@ -189,7 +189,8 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList()); // JDK 8~11 (16+면 .toList())
 
         //  AT 발급
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername(), user.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(
+                user.getUserId(), user.getUsername(), user.getNickname(), roles, user.getOauthProvider());
 
         //  RT 발급 & 저장
         String newRt = jwtUtil.generateRefreshToken(user.getUserId());
@@ -315,7 +316,8 @@ public class UserServiceImpl implements UserService {
 
         List<String> roles = List.of(user.getRole().toString());
 
-        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getEmail(), user.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(
+                user.getId(), user.getEmail(), user.getNickname(), roles, user.getOauthProvider());
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
 
         Jws<Claims> jws = jwtUtil.parserClaimsJws(refreshToken);

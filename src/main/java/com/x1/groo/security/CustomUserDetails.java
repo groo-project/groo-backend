@@ -61,6 +61,10 @@ public class CustomUserDetails implements UserDetails {
         return user.getNickname();
     }
 
+    public String getOauthProvider() {
+        return user.getOauthProvider();
+    }
+
     @Override
     public boolean isEnabled() {
         return true;

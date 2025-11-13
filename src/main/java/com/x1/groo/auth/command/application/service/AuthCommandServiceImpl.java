@@ -119,7 +119,8 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUserId(),user.getUsername(), user.getNickname(), roles);
+        String accessToken = jwtUtil.generateAccessToken(
+                user.getUserId(),user.getUsername(), user.getNickname(), roles, user.getOauthProvider());
         return new RefreshResultVO(accessToken, rt, jwtUtil.getRefreshTtl());
     }
 
@@ -195,7 +196,8 @@ public class AuthCommandServiceImpl implements AuthCommandService{
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
-                List.of(user.getRole().toString())
+                List.of(user.getRole().toString()),
+                user.getOauthProvider()
         );
 
         String refreshToken = jwtUtil.generateRefreshToken(user.getId());
